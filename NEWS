@@ -1,21 +1,19 @@
- mysPowerS0 - NEWS
+ mysGarageDoors - NEWS
 
  Summary
  =======
  
-   Version 1.2
+   Version 1.0
 
 -----------------------------------------------------------------------
- Version 1.2
+ Version 1.0
  ===========
 
- Released on 2017-04-21 
+ Released on 
 
  New features and improvements:
 
-   - Pulse S0 modules can be configured from Jeedom interface.
-   - VA power is reset to zero on pulse timeout.
-   - Pulse S0 configuration is loaded from / saved to user EEPROM.
+   - 
 
  Bug fixes:
 
@@ -26,6 +24,5 @@
    - 
 
 -----------------------------------------------------------------------
- P. Wieser - Created on 2017, apr. 2nd
-             Last updated on 2017, apr. 21st
+ P. Wieser - Created on 2017, apr. 26th
 

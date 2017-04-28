@@ -1,102 +1,42 @@
- mysPowerS0 - README
+ mysGarageDoors - README
 
  Summary
  =======
  
    Description
-   Interrupts
-   Configuration
-   Hardware
+   Interactions
 
 -----------------------------------------------------------------------
  Description
  ===========
 
- mysPowerS0 is a MySensors v2.x module, built on an Arduino Nano.
+ Manage the two garage doors.
 
- It may connect up to four Pulse S0 meter modules, and transmit energy
- (Wh) and power (VA) to the controller.
+ From mySensors point of view, the board manages:
 
- The controller transmission uses NRF24L01 radio-module.
+  - one 'main' global child
 
- Each Pulse S0 module use three pins:
- - the data input pin;
- - an enable pin, which has to be shortened to GND if the module is not
-   present;
- - a LED pin which is on when the module is enabled.
-
- Due to the count of pins each Pulse S0 module uses, the mysPowerS0 can
- manage up to four Pulse S0 meter modules.
+  - two children per door:
+    > an 'actor' to send and receive commands
+    > a 'cover' to send position of the door.
 
 -----------------------------------------------------------------------
- Interrupts
- ==========
+ Interactions
+ ============
 
- The Arduino Nano only has two hardware interrupts, which we are leaving
- free here.
+ C_SET on the MAIN global child:
 
- The NRF24L01 radio-module makes full use of Port B (PCINT0).
+ - payload = '1': raz the eeprom.
+ - payload = '2': run the learning program.
 
- We choose to only use the Port C (PCINT1) for our Pulse S0 modules, and
- manage it through software interrupts.
+ C_SET on the ACTOR child of a door:
 
- Pulse counter is triggered on descending IRQ.
+ - payload = '1': open/close the door (push the action button).
 
------------------------------------------------------------------------
- Configuration
- =============
+ C_REQ on the ACTOR child of a door:
 
- As of v1.2, Pulse S0 meter modules default to be configured as:
- - 1000 impulsions per kWh
- - 90 ms impulsion
- - noname.
-
- These parameters can be configured as follow:
-
- - C_SET on VA or WH child_id:
-   payload = '1=<value>' count of impulsions per kW.h (default=1000)
-   payload = '2=<value>' length of the impulsion (ms)
-   payload = '3=<value>' model name (22 chars max)
-   payload = '4=<impkwh>,<implen>,<name>'
-
- - C_REQ on VA or WH child_id:
-   payload = '1' send count of impulsions per kWh (impkwh) as a string 'kwh=<value>'
-   payload = '2' send the minimal length of the impulsion as a string 'l=<value>'
-   payload = '3' send the preset model name as a string 'n=<value>'
-   payload = '4' send all the previous three messages
-   
- Global configuration can be:
-
- - C_SET on CHILD_ID_GLOBAL = 1:
-   payload = '1'         reset the loop interval to its default value
-   payload = '2=<value>' set the loop interval to the provided value (ms)
-
- - C_REQ on CHILD_ID_GLOBAL = 1:
-   payload = '1' send the default loop interval
-   payload = '2' send the current loop interval
-   payload = '3' send the current count of enabled modules
+ - payload = '1': sends a custom message
 
 -----------------------------------------------------------------------
- Hardware
- ========
-
- DRS155-D
- monophasé
- 50 A
- 1000 imp/kWh
- 90 ms
- http://www.cartelectronic.fr/electricite/52-compteur-energie-retroeclaire.html
- 25 € TTC port compris
-
- WSZ12DE-32A
- monophasé
- 32 A
- 2000 imp/kWh
- 50 ms
- https://www.elektroradar.de/wechselstromzaehler-wsz12de-32a.html
- 34 € TTC port compris
-
------------------------------------------------------------------------
- P. Wieser - Created on 2017, apr. 2nd
-             Last updated on 2017, apr. 21st
+ P. Wieser - Created on 2017, apr. 26th
 
