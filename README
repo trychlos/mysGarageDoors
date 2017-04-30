@@ -24,18 +24,23 @@
  Interactions
  ============
 
- C_SET on the MAIN global child:
-
- - payload = '1': raz the eeprom.
- - payload = '2': run the learning program.
-
- C_SET on the ACTOR child of a door:
-
- - payload = '1': open/close the door (push the action button).
-
- C_REQ on the ACTOR child of a door:
-
- - payload = '1': sends a custom message
+ +- CHILD_MAIN (S_CUSTOM)
+     |
+     +- C_SET
+         |
+         +- V_CUSTOM with payload = '1': raz the eeprom.
+         +- V_CUSTOM with payload = '2': run the learning program.
+      
+ +- CHILD_DOOR (S_COVER)
+     |
+     +- C_SET
+     |   |
+     |   +- V_CUSTOM with payload = '1': open/close the door.
+     |
+     +- C_REQ
+         |
+         +- V_UP / V_DOWN sent when the door is opening/closing
+         +- V_VAR1 with payload = 0-100 % door opened
 
 -----------------------------------------------------------------------
  P. Wieser - Created on 2017, apr. 26th

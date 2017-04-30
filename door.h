@@ -1,7 +1,7 @@
 #ifndef __DOOR_H__
 #define __DOOR_H__
 
-#include <Arduino.h>
+#include "pwi_timer.h"
 
 /* Door children:
  *  - the 'actor' child identifier is declared in the main program;
@@ -21,23 +21,6 @@ enum {
     DOOR_MOVEDOWN,
 };
 
-/* The learning phases
- */
-enum {
-    LEARNING_NONE = 0,
-    LEARNING_START,
-    LEARNING_OPEN1,
-    LEARNING_OPENWAIT1,
-    LEARNING_CLOSE1,
-    LEARNING_CLOSEWAIT1,
-    LEARNING_OPEN2,
-    LEARNING_OPENWAIT2,
-    LEARNING_CLOSE2,
-    LEARNING_CLOSEWAIT2,
-};
-
-#define LEARNING_WAIT 1000 /* wait 1 sec. between open and close */
-
 class Door {
     public:
         Door( uint8_t child_id, uint8_t command_pin, uint8_t opening_pin, uint8_t closing_pin, uint8_t closed_pin, uint8_t enabled_pin );
@@ -47,7 +30,11 @@ class Door {
         bool          isEnabled( void );
         void          requestInfo( void );
         void          runLoop( unsigned long average_ms );
-        void          pushButton( void );
+        void          pushButton( byte level = HIGH );
+        void          sendState( void );
+        void          sendPosition( void );
+
+        static const char *StateToStr( uint8_t state );
 
     private:
         // initialization
@@ -58,22 +45,30 @@ class Door {
         uint8_t       closed_pin;
         uint8_t       enabled_pin;
 
+        // whether this door is enabled
+        bool          is_enabled;
+
         // the move status for the current loop
         uint8_t       move_loop;
 
-        // the last actual move (not the last move status)
+        // the last actual move
+        // (which is not the move status from the previous loop)
         uint8_t       last_move;
         unsigned long last_begin_ms;
         unsigned long last_end_ms;
 
-        // pushing the button
-        unsigned long  button_pushed_ms;
+        // the last known position
+        // 0% is fully closed, 100% is fully opened
+        uint8_t       pos;
 
-        // the last sent message
-        unsigned long last_msg;
+        // some timers
+        pwiTimer      debounce_timer;
+        pwiTimer      push_button_timer;
+        pwiTimer      state_timer;
+        pwiTimer      position_timer;
 
-        bool           getEnabled( void );
-        bool           is_enabled;
+        // private functions
+        bool          getEnabled( void );
 };
 
 #endif // __DOOR_H__

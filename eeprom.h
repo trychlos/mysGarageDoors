@@ -10,6 +10,10 @@
  *   4  unsigned long     4  door 1 closing duration (ms)
  *   8  unsigned long     4  door 2 opening duration (ms)
  *  12  unsigned long     4  door 2 closing duration (ms)
+ *  
+ * Please note that this EEPROM code must be written in main .ino program
+ * in order to take advantage of the MySensors library (which does not want
+ * to be compiled from other source files).
  */
 
 typedef struct {
@@ -20,10 +24,11 @@ typedef struct {
 }
   sEeprom;
 
-void eeprom_dump( sEeprom &sdata );
-void eeprom_read( sEeprom &sdata );
-void eeprom_write( sEeprom &sdata );
-void eeprom_raz( void );
+unsigned long eeprom_compute_average( sEeprom &sdata );
+void          eeprom_dump( sEeprom &sdata );
+void          eeprom_read( sEeprom &sdata );
+void          eeprom_write( sEeprom &sdata );
+void          eeprom_raz( void );
 
 #endif // __DOOR_EEPROM_H__
 

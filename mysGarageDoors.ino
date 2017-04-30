@@ -101,18 +101,16 @@ MyMessage msgPosition( 0, V_PERCENTAGE );
 #ifdef HAVE_DOOR
 #include "door.h"
 #include "doorglobal.h"
-#include "eeprom.h"
+#include "learning.h"
 #include "until_now.h"
 
 // Doors objects
 Door door1( CHILD_ID_DOOR1,  5,  2,  3,  4,  6 );
 Door door2( CHILD_ID_DOOR2, A2, A5, A4, A3, A1 );
 
-// the data get from / set to the EEPROM
-sEeprom eeprom;
-unsigned long average_ms = 0;
-uint8_t learning_phase = LEARNING_NONE;
-unsigned long learning_ms = 0;
+// learning management
+sLearning slearning;
+void learning_set_door2( sLearning *slearn );
 
 /*
  * Presents the doors to the mySensors gateway
@@ -152,12 +150,6 @@ void doorSendState( uint8_t child_id, uint8_t move_id )
             send( msgDown.set( true ));
             break;
     }
-#ifdef DEBUG_ENABLED
-    Serial.print( F( "[doorSendState] child_id=" ));
-    Serial.print( child_id );
-    Serial.print( F( ", move_id=" ));
-    Serial.println( move_id );
-#endif
 }
 
 /*
@@ -168,18 +160,28 @@ void doorSendPosition( uint8_t child_id, uint8_t pos )
 {
     msgPosition.setSensor( child_id+DOOR_COVER );
     send( msgPosition.set( pos ));
-#ifdef DEBUG_ENABLED
-    Serial.print( F( "[doorSendPosition] child_id=" ));
-    Serial.print( child_id );
-    Serial.print( F( ", pos=" ));
-    Serial.println( pos );
-#endif
 }
 #endif // HAVE_DOOR
 
 /* **************************************************************************************
  *  MAIN CODE
  */
+#include "eeprom.h"
+#include "pwi_timer.h"
+
+sEeprom eeprom;
+unsigned long average_ms = 0;
+
+#define MAIN_LOOP         500        /* main loop is 500 ms. */
+static const char *st_main = "MainTimer";
+
+pwiTimer main_timer;
+pwiTimer learning_oc_timer;           /* wait before opening and closing a door */
+pwiTimer learning_bd_timer;           /* wait before closing door 1 and opening door 2 */
+
+static const char *st_learning_oc = "LearningOpenCloseTimer";
+static const char *st_learning_bd = "LearningBetweenDoorsTimer";
+
 void presentation()
 {
 #ifdef DEBUG_ENABLED
@@ -198,112 +200,125 @@ void setup()
     Serial.begin( 115200 );
     Serial.println( F( "[setup]" ));
 #endif
+
     eeprom_read( eeprom );
-    average_ms = ( eeprom.door1_opening_ms + eeprom.door1_closing_ms + eeprom.door2_opening_ms + eeprom.door2_closing_ms ) / 4;
+    average_ms = eeprom_compute_average( eeprom );
+    main_timer.set( st_main, MAIN_LOOP, false, main_loop, NULL );
+
+#ifdef HAVE_DOOR
+    memset( &slearning, '\0', sizeof( sLearning ));
+    slearning.phase = LEARNING_NONE;
+    learning_oc_timer.set( st_learning_oc, LEARNING_OPENCLOSE_WAIT, true, onOpenCloseCb, &slearning );
+    learning_bd_timer.set( st_learning_bd, LEARNING_BETWEENDOORS_WAIT, true, onBetweenDoorsCb, &slearning );
+#endif
+
+    pwiTimer::Dump();
+    main_timer.start();
 }
 
-void loop()      
+void loop()
+{
+    pwiTimer::Loop();
+}
+
+void main_loop( void *empty )
 {
 #ifdef DEBUG_ENABLED
     Serial.println( F( "[loop]" ));
+    learning_dump( slearning );
 #endif
 #ifdef HAVE_DOOR
     door1.runLoop( average_ms );
     door2.runLoop( average_ms );
+    
+    switch( slearning.phase ){
 
-    unsigned long duration;
-    uint8_t current_move;
-    switch( learning_phase ){
-        case LEARNING_START:
-            if( door1.isEnabled()){
-                door1.pushButton();
-                learning_phase = LEARNING_OPEN1;
-                learning_ms = millis();
-            } else if( door2.isEnabled()){
-                learning_phase = LEARNING_CLOSEWAIT1;
-                learning_ms = millis();
+        // the door is ready to be opened
+        case LEARNING_OPEN:
+            slearning.door->pushButton();
+            slearning.phase = LEARNING_WAITOPEN;
+            slearning.ms = millis();
+            break;
+
+        // waiting for the opening move takes place
+        case LEARNING_WAITOPEN:
+            if( slearning.door->getCurrentMove() == DOOR_MOVEUP ){
+                slearning.phase = LEARNING_OPENING;
             }
             break;
-        case LEARNING_OPEN1:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                current_move = door1.getCurrentMove();
-                if( current_move == DOOR_NOMOVE ){
-                    learning_phase = LEARNING_OPENWAIT1;
-                    learning_ms = millis();
-                    eeprom.door1_opening_ms = duration;
+      
+        // the door is opening (the button has been pushed)
+        //  waiting for the end of the move
+        case LEARNING_OPENING:
+            if( slearning.door->getCurrentMove() == DOOR_NOMOVE ){
+                *( slearning.opening_ms ) = untilNow( millis(), slearning.ms );
+                learning_oc_timer.start();
+            }
+            break;
+
+        // the door is ready to be closed
+        case LEARNING_CLOSE:
+            slearning.door->pushButton();
+            slearning.phase = LEARNING_WAITCLOSE;
+            slearning.ms = millis();
+            break;
+
+        // waiting for the opening move takes place
+        case LEARNING_WAITCLOSE:
+            if( slearning.door->getCurrentMove() == DOOR_MOVEDOWN ){
+                slearning.phase = LEARNING_CLOSING;
+            }
+            break;
+
+        // the door is closing (the button has been pushed)
+        //  waiting for the end of the move
+        case LEARNING_CLOSING:
+            if( slearning.door->getCurrentMove() == DOOR_NOMOVE ){
+                *( slearning.closing_ms ) = untilNow( millis(), slearning.ms );
+                if( slearning.next ){
+                    learning_bd_timer.start();
+                } else {
+                    memset( &slearning, '\0', sizeof( sLearning ));
+                    slearning.phase = LEARNING_NONE;
+                    eeprom_write( eeprom );
+                    average_ms = eeprom_compute_average( eeprom );
                 }
-            }
-            break;
-        case LEARNING_OPENWAIT1:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                door1.pushButton();
-                learning_phase = LEARNING_CLOSE1;
-                learning_ms = millis();
-            }
-            break;
-        case LEARNING_CLOSE1:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                current_move = door1.getCurrentMove();
-                if( current_move == DOOR_NOMOVE ){
-                    learning_phase = LEARNING_CLOSEWAIT1;
-                    learning_ms = millis();
-                    eeprom.door1_closing_ms = duration;
-                }
-            }
-            break;
-        case LEARNING_CLOSEWAIT1:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                door2.pushButton();
-                learning_phase = LEARNING_OPEN2;
-                learning_ms = millis();
-            }
-            break;
-        case LEARNING_OPEN2:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                current_move = door2.getCurrentMove();
-                if( current_move == DOOR_NOMOVE ){
-                    learning_phase = LEARNING_OPENWAIT2;
-                    learning_ms = millis();
-                    eeprom.door2_opening_ms = duration;
-                }
-            }
-            break;
-        case LEARNING_OPENWAIT2:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                door2.pushButton();
-                learning_phase = LEARNING_CLOSE2;
-                learning_ms = millis();
-            }
-            break;
-        case LEARNING_CLOSE2:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                current_move = door2.getCurrentMove();
-                if( current_move == DOOR_NOMOVE ){
-                    learning_phase = LEARNING_CLOSEWAIT2;
-                    learning_ms = millis();
-                    eeprom.door2_closing_ms = duration;
-                }
-            }
-            break;
-        case LEARNING_CLOSEWAIT2:
-            duration = untilNow( millis(), learning_ms );
-            if( duration > LEARNING_WAIT ){
-                learning_phase = LEARNING_NONE;
-                eeprom_write( eeprom );
-                average_ms = ( eeprom.door1_opening_ms + eeprom.door1_closing_ms + eeprom.door2_opening_ms + eeprom.door2_closing_ms ) / 4;
             }
             break;
     }
 #endif
-    wait( 200 );
 }
+
+/*
+ * This is the timer callback between opening and closing a door
+ */
+void onOpenCloseCb( void *user_data )
+{
+#ifdef HAVE_DOOR
+    (( sLearning * ) user_data )->phase = LEARNING_CLOSE;
+#endif
+}
+
+/*
+ * This is the timer callback between closing door 1 and opening door 2
+ */
+void onBetweenDoorsCb( void *user_data )
+{
+#ifdef HAVE_DOOR
+    learning_set_door2(( sLearning * ) user_data );
+#endif
+}
+
+#ifdef HAVE_DOOR
+void learning_set_door2( sLearning *slearn )
+{
+    slearn->door = &door2;
+    slearn->next = NULL;
+    slearn->phase = LEARNING_OPEN;
+    slearn->opening_ms = &eeprom.door2_opening_ms;
+    slearn->closing_ms = &eeprom.door2_closing_ms;
+}
+#endif
 
 /*
  * Handle a C_SET/C_REQ request on a CHILD_ID:
@@ -321,12 +336,19 @@ void loop()
  */
 void receive(const MyMessage &message)
 {
+    char payload[2*MAX_PAYLOAD+1];
     uint8_t cmd = message.getCommand();
     uint8_t req;
-    
+
+    memset( payload, '\0', sizeof( payload ));
+    message.getString( payload );
+#ifdef HAVE_DEBUG
+    Serial.print( F( "[receive] payload='" )); Serial.print( payload ); Serial.println( "'" ); 
+#endif
+
     if( message.sensor == CHILD_MAIN ){
         if( cmd == C_SET ){
-            req = getPayloadInt( message );
+            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
             switch( req ){
                 case 1:
                     eeprom_raz();
@@ -336,45 +358,86 @@ void receive(const MyMessage &message)
                     break;
             }
         }
-      
+
+#ifdef HAVE_DOOR
     } else if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR || message.sensor == CHILD_ID_DOOR2+DOOR_ACTOR ){
         if( cmd == C_SET ){
-            req = getPayloadInt( message );
-            if( req == 1 ){
-                if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR ){
-                    door1.pushButton();
-                } else {
-                    door2.pushButton();
-                }
+            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+            switch( req ){
+                case 1:
+                    if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR ){
+                        door1.pushButton();
+                    } else {
+                        door2.pushButton();
+                    }
+                    break;
             }
         }
         if( cmd == C_REQ ){
-            req = getPayloadInt( message );
-            if( req == 1 ){
-                if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR ){
-                    door1.requestInfo();
-                } else {
-                    door2.requestInfo();
-                }
+            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+            switch( req ){
+                case 1:
+                    if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR ){
+                        door1.requestInfo();
+                    } else {
+                        door2.requestInfo();
+                    }
+                    break;
             }
         }
+#endif
     }
-}
-
-uint8_t getPayloadInt( const MyMessage &message )
-{
-    char buffer[2*MAX_PAYLOAD+1];
-    memset( buffer, '\0', sizeof( buffer ));
-    message.getString( buffer );
-    if( strlen( buffer )){
-        return( atoi( buffer ));
-    }
-    return( 0 );
 }
 
 void runLearningProgram( void )
 {
-    learning_phase = LEARNING_START;
+#ifdef HAVE_DOOR
+    if( door1.isEnabled()){
+        slearning.door = &door1;
+        slearning.next = door2.isEnabled() ? &door2 : NULL;
+        slearning.phase = LEARNING_OPEN;
+        slearning.opening_ms = &eeprom.door1_opening_ms;
+        slearning.closing_ms = &eeprom.door1_closing_ms;
+
+    } else if( door2.isEnabled()){
+        learning_set_door2( &slearning );
+    }
+#endif
+}
+
+/**
+ * eeprom_compute_average:
+ * @sdata: the sEeprom data structure to be dumped.
+ *
+ * Dump the sEeprom struct content.
+ */
+unsigned long eeprom_compute_average( sEeprom &sdata )
+{
+    uint8_t count = 0;
+    unsigned long average = 0;
+    if( sdata.door1_opening_ms > 0 ){
+        average += sdata.door1_opening_ms;
+        count += 1;
+    }
+    if( sdata.door1_closing_ms > 0 ){
+        average += sdata.door1_closing_ms;
+        count += 1;
+    }
+    if( sdata.door2_opening_ms > 0 ){
+        average += sdata.door2_opening_ms;
+        count += 1;
+    }
+    if( sdata.door2_closing_ms > 0 ){
+        average += sdata.door2_closing_ms;
+        count += 1;
+    }
+    if( count > 0 ){
+        average /= count;
+    }
+#ifdef EEPROM_DEBUG
+    Serial.print( F( "[eeprom_compute_average] average=" )); Serial.println( average );
+#endif
+    return( average );
 }
 
 /**

@@ -896,4 +896,8 @@ Text Notes 3900 8750 0    60   ~ 0
 Door n° 1\nBP commande
 Text Notes 3650 8000 0    60   ~ 0
 Shorten to GND\nto disable the door
+Text Notes 12050 2000 0    60   ~ 0
+Contact door n° 2\nis closed
+Text Notes 11900 8450 0    60   ~ 0
+Contact door n° 1\nis closed
 $EndSCHEMATC
