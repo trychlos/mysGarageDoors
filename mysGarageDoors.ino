@@ -53,6 +53,9 @@
 // uncomment for having mySensors radio enabled
 #define HAVE_NRF24_RADIO
 
+#include "eeprom.h"
+#include "pwi_timer.h"
+
 static const char * const thisSketchName    = "mysGarageDoors";
 static const char * const thisSketchVersion = "1.0-2017";
 
@@ -75,6 +78,30 @@ enum {
     CHILD_ID_DOOR2 = 20,
 };
 
+sEeprom eeprom;
+unsigned long average_ms = 0;
+
+/* main loop is 100 ms. */
+#define MAIN_LOOP             250
+static const char   *st_main_label        = "MainTimer";
+pwiTimer main_timer;
+
+/* unchanged default timeout is 1h */
+#define UNCHANGED_TIMEOUT 3600000
+static const char   *st_unchanged_label   = "UnchangedTimer";
+static unsigned long st_unchanged_timeout = UNCHANGED_TIMEOUT;
+pwiTimer unchanged_timer;
+
+pwiTimer learning_oc_timer;           /* wait before opening and closing a door */
+pwiTimer learning_bd_timer;           /* wait before closing door 1 and opening door 2 */
+
+static const char *st_learning_oc = "LearningOpenCloseTimer";
+static const char *st_learning_bd = "LearningBetweenDoorsTimer";
+
+MyMessage msgVar1( 0, V_VAR1 );
+MyMessage msgVar2( 0, V_VAR2 );
+MyMessage msgVar3( 0, V_VAR3 );
+
 /* **************************************************************************************
  * MySensors gateway
  */
@@ -88,11 +115,6 @@ void presentation_my_sensors()
     present( CHILD_MAIN, S_CUSTOM );
 #endif // HAVE_NRF24_RADIO
 }
-
-MyMessage msgCustom( 0, V_CUSTOM );
-MyMessage msgUp( 0, V_UP );
-MyMessage msgDown( 0, V_DOWN );
-MyMessage msgPosition( 0, V_PERCENTAGE );
 
 /* **************************************************************************************
  * Door management
@@ -112,6 +134,13 @@ Door door2( CHILD_ID_DOOR2, A2, A5, A4, A3, A1 );
 sLearning slearning;
 void learning_set_door2( sLearning *slearn );
 
+MyMessage msgUp( 0, V_UP );
+MyMessage msgDown( 0, V_DOWN );
+
+/* defaults to only sent position change greater than the minimal */
+#define POSITION_MIN                       10
+static uint8_t st_position_min = POSITION_MIN;
+
 /*
  * Presents the doors to the mySensors gateway
  */
@@ -123,65 +152,84 @@ void presentation_door( void *pdoor )
     Serial.print( F( "[presentation_door] child_id=" )); Serial.println( child_id );
 #endif
 #ifdef HAVE_NRF24_RADIO
-    present( child_id+DOOR_ACTOR, S_CUSTOM );
-    present( child_id+DOOR_COVER, S_COVER );
+    present( child_id+DOOR_MAIN, S_CUSTOM );
+    present( child_id+DOOR_UP, S_CUSTOM );
+    present( child_id+DOOR_DOWN, S_CUSTOM );
+    present( child_id+DOOR_POSITION, S_CUSTOM );
+    present( child_id+DOOR_CLOSED, S_CUSTOM );
 #endif
+    door->setMinPositionChange( st_position_min );
 }
 
-/*
- * Send the current state to the controller
- */
-void doorSendState( uint8_t child_id, uint8_t move_id )
+void doorSendStatus( Door *door )
 {
-    msgUp.setSensor( child_id+DOOR_COVER );
-    msgDown.setSensor( child_id+DOOR_COVER );
-    
-    switch( move_id ){
-        case DOOR_NOMOVE:
-            send( msgUp.set( false ));
-            send( msgDown.set( false ));
-            break;
-        case DOOR_MOVEUP:
-            send( msgUp.set( true ));
-            send( msgDown.set( false ));
-            break;
-        case DOOR_MOVEDOWN:
-            send( msgUp.set( false ));
-            send( msgDown.set( true ));
-            break;
+    uint8_t child_id = door->getChildId();
+
+    // send the enabled status
+    bool is_enabled = door->getEnabled();
+    msgVar1.setSensor( child_id+DOOR_MAIN ).set( is_enabled );
+    send( msgVar1 );
+
+    if( is_enabled ){
+        // send the move status
+        uint8_t move_id = door->getMove();
+        msgUp.setSensor( child_id+DOOR_UP );
+        msgDown.setSensor( child_id+DOOR_DOWN );
+        
+        switch( move_id ){
+            case DOOR_NOMOVE:
+                send( msgUp.set( false ));
+                send( msgDown.set( false ));
+                break;
+            case DOOR_MOVEUP:
+                send( msgUp.set( true ));
+                send( msgDown.set( false ));
+                break;
+            case DOOR_MOVEDOWN:
+                send( msgUp.set( false ));
+                send( msgDown.set( true ));
+                break;
+        }
+
+        // send the position
+        msgVar1.setSensor( child_id+DOOR_POSITION ).set( door->getPosition());
+        send( msgVar1 );
+
+        // send the closed state
+        msgVar1.setSensor( child_id+DOOR_CLOSED ).set( door->getClosed());
+        send( msgVar1 );
     }
-}
 
-/*
- * Send the current position to the controller
- * 0% is fully closed, 100% is fully opened
- */
-void doorSendPosition( uint8_t child_id, uint8_t pos )
-{
-    msgPosition.setSensor( child_id+DOOR_COVER );
-    send( msgPosition.set( pos ));
+    unchanged_timer.restart();
 }
 #endif // HAVE_DOOR
+
+void globalSendStatus( void )
+{
+    msgVar1.setSensor( CHILD_MAIN ).set( average_ms );
+    send( msgVar1 );
+    
+    msgVar2.setSensor( CHILD_MAIN ).set( st_unchanged_timeout );
+    send( msgVar2 );
+    
+    msgVar3.setSensor( CHILD_MAIN ).set( st_position_min );
+    send( msgVar3 );
+
+    unchanged_timer.restart();
+}
+
+void onUnchangedCb( void *empty )
+{
+    globalSendStatus();
+#ifdef HAVE_DOOR
+    doorSendStatus( &door1 );
+    doorSendStatus( &door2 );
+#endif
+}
 
 /* **************************************************************************************
  *  MAIN CODE
  */
-#include "eeprom.h"
-#include "pwi_timer.h"
-
-sEeprom eeprom;
-unsigned long average_ms = 0;
-
-#define MAIN_LOOP         500        /* main loop is 500 ms. */
-static const char *st_main = "MainTimer";
-
-pwiTimer main_timer;
-pwiTimer learning_oc_timer;           /* wait before opening and closing a door */
-pwiTimer learning_bd_timer;           /* wait before closing door 1 and opening door 2 */
-
-static const char *st_learning_oc = "LearningOpenCloseTimer";
-static const char *st_learning_bd = "LearningBetweenDoorsTimer";
-
 void presentation()
 {
 #ifdef DEBUG_ENABLED
@@ -203,7 +251,9 @@ void setup()
 
     eeprom_read( eeprom );
     average_ms = eeprom_compute_average( eeprom );
-    main_timer.set( st_main, MAIN_LOOP, false, main_loop, NULL );
+    main_timer.set( st_main_label, MAIN_LOOP, false, main_loop, NULL );
+    main_timer.setDebug( false );
+    unchanged_timer.set( st_unchanged_label, st_unchanged_timeout, false, onUnchangedCb, NULL );
 
 #ifdef HAVE_DOOR
     memset( &slearning, '\0', sizeof( sLearning ));
@@ -214,6 +264,7 @@ void setup()
 
     pwiTimer::Dump();
     main_timer.start();
+    unchanged_timer.start();
 }
 
 void loop()
@@ -224,8 +275,10 @@ void loop()
 void main_loop( void *empty )
 {
 #ifdef DEBUG_ENABLED
-    Serial.println( F( "[loop]" ));
-    learning_dump( slearning );
+    if( slearning.phase != LEARNING_NONE ){
+        Serial.println( F( "[loop]" ));
+        learning_dump( slearning );
+    }
 #endif
 #ifdef HAVE_DOOR
     door1.runLoop( average_ms );
@@ -242,7 +295,7 @@ void main_loop( void *empty )
 
         // waiting for the opening move takes place
         case LEARNING_WAITOPEN:
-            if( slearning.door->getCurrentMove() == DOOR_MOVEUP ){
+            if( slearning.door->getMove() == DOOR_MOVEUP ){
                 slearning.phase = LEARNING_OPENING;
             }
             break;
@@ -250,7 +303,7 @@ void main_loop( void *empty )
         // the door is opening (the button has been pushed)
         //  waiting for the end of the move
         case LEARNING_OPENING:
-            if( slearning.door->getCurrentMove() == DOOR_NOMOVE ){
+            if( slearning.door->getMove() == DOOR_NOMOVE ){
                 *( slearning.opening_ms ) = untilNow( millis(), slearning.ms );
                 learning_oc_timer.start();
             }
@@ -265,7 +318,7 @@ void main_loop( void *empty )
 
         // waiting for the opening move takes place
         case LEARNING_WAITCLOSE:
-            if( slearning.door->getCurrentMove() == DOOR_MOVEDOWN ){
+            if( slearning.door->getMove() == DOOR_MOVEDOWN ){
                 slearning.phase = LEARNING_CLOSING;
             }
             break;
@@ -273,7 +326,7 @@ void main_loop( void *empty )
         // the door is closing (the button has been pushed)
         //  waiting for the end of the move
         case LEARNING_CLOSING:
-            if( slearning.door->getCurrentMove() == DOOR_NOMOVE ){
+            if( slearning.door->getMove() == DOOR_NOMOVE ){
                 *( slearning.closing_ms ) = untilNow( millis(), slearning.ms );
                 if( slearning.next ){
                     learning_bd_timer.start();
@@ -347,43 +400,54 @@ void receive(const MyMessage &message)
 #endif
 
     if( message.sensor == CHILD_MAIN ){
-        if( cmd == C_SET ){
-            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
-            switch( req ){
-                case 1:
-                    eeprom_raz();
-                    break;
-                case 2:
-                    runLearningProgram();
-                    break;
-            }
+        switch( cmd ){
+            case C_SET:
+                req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+                switch( req ){
+                    case 1:
+                        eeprom_raz();
+                        break;
+                    case 2:
+                        runLearningProgram();
+                        break;
+                    case 3:
+                        st_unchanged_timeout = strlen( payload ) > 2 ? atol( payload+2 ) : 0;
+                        unchanged_timer.set( st_unchanged_timeout );
+                        break;
+                    case 4:
+                        st_position_min = strlen( payload ) > 2 ? atoi( payload+2 ) : 0;
+#ifdef HAVE_DOOR
+                        door1.setMinPositionChange( st_position_min );
+                        door2.setMinPositionChange( st_position_min );
+#endif
+                        break;
+                }
+                break;
+            case C_REQ:
+                req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+                switch( req ){
+                    case 1:
+                        onUnchangedCb( NULL );
+                        break;
+                }
+                break;
         }
 
 #ifdef HAVE_DOOR
-    } else if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR || message.sensor == CHILD_ID_DOOR2+DOOR_ACTOR ){
-        if( cmd == C_SET ){
-            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
-            switch( req ){
-                case 1:
-                    if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR ){
-                        door1.pushButton();
-                    } else {
-                        door2.pushButton();
-                    }
-                    break;
-            }
-        }
-        if( cmd == C_REQ ){
-            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
-            switch( req ){
-                case 1:
-                    if( message.sensor == CHILD_ID_DOOR1+DOOR_ACTOR ){
-                        door1.requestInfo();
-                    } else {
-                        door2.requestInfo();
-                    }
-                    break;
-            }
+    } else if( message.sensor == CHILD_ID_DOOR1+DOOR_MAIN || message.sensor == CHILD_ID_DOOR2+DOOR_MAIN ){
+        switch( cmd ){
+            case C_SET:
+                req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+                switch( req ){
+                    case 1:
+                        if( message.sensor == CHILD_ID_DOOR1+DOOR_MAIN ){
+                            door1.pushButton();
+                        } else {
+                            door2.pushButton();
+                        }
+                        break;
+                }
+                break;
         }
 #endif
     }
@@ -392,14 +456,14 @@ void receive(const MyMessage &message)
 void runLearningProgram( void )
 {
 #ifdef HAVE_DOOR
-    if( door1.isEnabled()){
+    if( door1.getEnabled()){
         slearning.door = &door1;
-        slearning.next = door2.isEnabled() ? &door2 : NULL;
+        slearning.next = door2.getEnabled() ? &door2 : NULL;
         slearning.phase = LEARNING_OPEN;
         slearning.opening_ms = &eeprom.door1_opening_ms;
         slearning.closing_ms = &eeprom.door1_closing_ms;
 
-    } else if( door2.isEnabled()){
+    } else if( door2.getEnabled()){
         learning_set_door2( &slearning );
     }
 #endif

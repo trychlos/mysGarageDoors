@@ -20,6 +20,7 @@ pwiTimer::pwiTimer( void )
     this->user_data = NULL;
     this->start_ms = 0;
     this->label = NULL;
+    this->debug = true;
 
     if( st_count == 0 ){
         memset( st_timers, '\0', sizeof( st_timers ));
@@ -68,6 +69,31 @@ void pwiTimer::set( const char *label, unsigned long delay_ms, bool once, pwiTim
     this->once = once;
     this->cb = cb;
     this->user_data = user_data;
+}
+
+/**
+ * pwiTimer::set:
+ * @delay_ms: the duration of the timer; must be greater than zero.
+ * 
+ * Change the configured delay.
+ */
+void pwiTimer::set( unsigned long delay_ms )
+{
+    this->delay_ms = delay_ms;
+}
+
+/**
+ * pwiTimer::setDebug:
+ * @debug: whether this timer should be debugged.
+ * 
+ * Set the @debug flag.
+ * 
+ * This is mainly used for the main timer which expires very too often
+ * to be valuably debugged.
+ */
+void pwiTimer::setDebug( bool debug )
+{
+    this->debug = debug;
 }
 
 /**
@@ -150,7 +176,9 @@ void pwiTimer::objDump( uint8_t idx )
     Serial.print( F( ", cb=" ));
     Serial.print(( int ) cb );
     Serial.print( F( ", user_data=" ));
-    Serial.println(( int ) user_data );
+    Serial.print(( int ) user_data );
+    Serial.print( F( ", debug=" ));
+    Serial.println( debug ? "True":"False" );
 #endif
 }
 
@@ -168,18 +196,20 @@ void pwiTimer::objLoop( void )
         unsigned long duration = untilNow( millis(), this->start_ms );
         if( duration > this->delay_ms ){
 #ifdef TIMER_DEBUG
-            Serial.print( F( "[pwiTimer::objLoop] " ));
-            if( strlen( this->label )){
-                Serial.print( F( "label=" ));
-                Serial.print( this->label );
-                Serial.print( ", " );
+            if( this->debug ){
+                Serial.print( F( "[pwiTimer::objLoop] " ));
+                if( strlen( this->label )){
+                    Serial.print( F( "label=" ));
+                    Serial.print( this->label );
+                    Serial.print( ", " );
+                }
+                Serial.print( F( "delay_ms=" ));
+                Serial.print( this->delay_ms );
+                Serial.print( F( ", start_ms=" ));
+                Serial.print( this->start_ms );
+                Serial.print( F( ", duration=" ));
+                Serial.println( duration );
             }
-            Serial.print( F( "delay_ms=" ));
-            Serial.print( this->delay_ms );
-            Serial.print( F( ", start_ms=" ));
-            Serial.print( this->start_ms );
-            Serial.print( F( ", duration=" ));
-            Serial.println( duration );
 #endif
             if( this->cb ){
                 this->cb( this->user_data );

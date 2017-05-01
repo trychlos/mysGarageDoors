@@ -15,8 +15,8 @@ enum {
     LEARNING_CLOSING,                         // door is closing, wait for end of move
 };
 
-#define LEARNING_OPENCLOSE_WAIT     2000      /* wait 2 sec. between opening and closing a door */
-#define LEARNING_BETWEENDOORS_WAIT  4000      /* wait 4 sec. between closing the first door and opening the second one */
+#define LEARNING_OPENCLOSE_WAIT     5000      /* wait 5 sec. between opening and closing a door */
+#define LEARNING_BETWEENDOORS_WAIT  5000      /* wait 5 sec. between closing the first door and opening the second one */
 
 /* a data structure to manage the learning program
  */

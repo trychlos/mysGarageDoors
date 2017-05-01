@@ -45,6 +45,8 @@ class pwiTimer {
         pwiTimer( void );
         bool          isStarted();
         void          set( const char *label, unsigned long delay_ms, bool once, pwiTimerCb cb, void *user_data = NULL );
+        void          set( unsigned long delay_ms );
+        void          setDebug( bool debug );
         void          start( void );
         void          restart( void );
 
@@ -58,6 +60,7 @@ class pwiTimer {
         void         *user_data;
         unsigned long start_ms;
         char         *label;
+        bool          debug;
 
         void          objDump( uint8_t idx );
         void          objLoop( void );

@@ -6,13 +6,10 @@
 #define DOOR_DEBUG
 
 #define DOOR_TIMER_DEBOUNCE       1000                /* debouncing delay (ms) */
-#define DOOR_TIMER_PUSH            500                /* the duration of the push button pulse (ms) */
-#define DOOR_TIMER_TIMEOUT     3600000                /* sends a message each hour on no event */
-
 static const char *st_debouncing  = "DoorDebouncingTimer";
+
+#define DOOR_TIMER_PUSH            500                /* the duration of the push button pulse (ms) */
 static const char *st_pushbutton  = "DoorPushButtonTimer";
-static const char *st_state       = "DoorStateMsgTimer";
-static const char *st_position    = "DoorPositionMsgTimer";
 
 /**
  * DoorDebounceCb:
@@ -39,28 +36,6 @@ void DoorDebounceCb( void *pdata )
 void DoorPushButtonCb( void *pdata )
 {
     (( Door * ) pdata )->pushButton( LOW );
-}
-
-/**
- * DoorStateCb:
- * 
- * The timer is re-armed each time we are sending a message.
- * We resend the same message each time the timer expires.
- */
-void DoorStateCb( void *pdata )
-{
-    (( Door * ) pdata )->sendState();
-}
-
-/**
- * DoorPositionCb:
- * 
- * The timer is re-armed each time we are sending a message.
- * We resend the same message each time the timer expires.
- */
-void DoorPositionCb( void *pdata )
-{
-    (( Door * ) pdata )->sendPosition();
 }
 
 /**
@@ -94,6 +69,7 @@ Door::Door( uint8_t child_id, uint8_t command_pin, uint8_t opening_pin, uint8_t 
     this->closed_pin = closed_pin;
     digitalWrite( this->closed_pin, LOW );
     pinMode( this->closed_pin, INPUT );
+    this->is_closed = false;
 
     this->enabled_pin = enabled_pin;
     pinMode( this->enabled_pin, INPUT_PULLUP );
@@ -104,11 +80,11 @@ Door::Door( uint8_t child_id, uint8_t command_pin, uint8_t opening_pin, uint8_t 
     this->last_begin_ms = 0;
     this->last_end_ms = 0;
     this->pos = 0;
+    this->last_pos = 0;
+    this->min_change = 0;
     
-    this->debounce_timer.set(    st_debouncing, DOOR_TIMER_DEBOUNCE, true,  DoorDebounceCb,   this );
-    this->push_button_timer.set( st_pushbutton, DOOR_TIMER_PUSH,     true,  DoorPushButtonCb, this );
-    this->state_timer.set(       st_state,      DOOR_TIMER_TIMEOUT,  false, DoorStateCb,      this );
-    this->position_timer.set(    st_position,   DOOR_TIMER_TIMEOUT,  false, DoorPositionCb,   this );
+    this->debounce_timer.set( st_debouncing, DOOR_TIMER_DEBOUNCE, true, DoorDebounceCb, this );
+    this->push_button_timer.set( st_pushbutton, DOOR_TIMER_PUSH, true, DoorPushButtonCb, this );
 }
 
 /**
@@ -124,64 +100,51 @@ uint8_t Door::getChildId( void )
 }
 
 /**
- * Door::getCurrentMove:
+ * Door::getClosed:
  * 
- * Returns: the type of the current move after debounce.
- * 
- * Ignore any new move if the debouncing timer has been started.
+ * Returns: %TRUE if the door is closed.
  * 
  * Public
  */
-uint8_t Door::getCurrentMove( void )
+bool Door::getClosed( void )
 {
-    /* if the timer is started, we are currently debouncing
-     *  the last move - just ignore others
-     *  this->move_loop here is the move at the last loop before this one */
-    if( this->debounce_timer.isStarted()){
-        return( this->move_loop );
-    }
-
-    /* else return the current move
-     *  starting the debouncing timer if we are stopping */
-    uint8_t current = DOOR_NOMOVE;
-    byte value = digitalRead( this->opening_pin );
-    if( value == LOW ){
-        current = DOOR_MOVEUP;
-    } else {
-        value = digitalRead( this->closing_pin );
-        if( value == LOW ){
-            current = DOOR_MOVEDOWN;
-        }
-    }
-    if( current == DOOR_NOMOVE && current != this->move_loop ){
-        this->debounce_timer.start();
-    }
-
-    return( current );
+    return( this->is_closed );
 }
 
 /**
- * Door::isEnabled:
+ * Door::getEnabled:
  * 
  * Returns: %TRUE if the door is enabled.
  * 
  * Public
  */
-bool Door::isEnabled( void )
+bool Door::getEnabled( void )
 {
     return( this->is_enabled );
 }
 
 /**
- * Door::requestInfo:
+ * Door::getMove:
  * 
- * A C_REQ command has been received on the ACTOR child.
- * Send valuable informations to the controller.
+ * Returns: the current move identifier.
  * 
  * Public
  */
-void Door::requestInfo( void )
+uint8_t Door::getMove( void )
 {
+    return( this->move_loop );
+}
+
+/**
+ * Door::getPosition:
+ * 
+ * Returns: the current position.
+ * 
+ * Public
+ */
+uint8_t Door::getPosition( void )
+{
+    return( this->pos );
 }
 
 /**
@@ -197,10 +160,11 @@ void Door::requestInfo( void )
  */
 void Door::runLoop( unsigned long average_ms )
 {
-    if( this->getEnabled()){
-    
+    if( this->readEnabled()){
+
+        bool send_status = false;
         uint8_t prev_loop = this->move_loop;
-        uint8_t cur_move = this->getCurrentMove();
+        uint8_t cur_move = this->readCurrentMove();
     
         // move has changed
         // - either from no move to moving up or down (this is the beginning)
@@ -214,7 +178,7 @@ void Door::runLoop( unsigned long average_ms )
             } else {
                 this->last_end_ms = millis();
             }
-            this->sendState();
+            send_status = true;
         }
     
         // if position has changed, send the new position
@@ -236,14 +200,30 @@ void Door::runLoop( unsigned long average_ms )
             Serial.print( F( ", pos=" ));
             Serial.println( this->pos );
 #endif
-            this->sendPosition();
+            uint8_t diff = abs( this->pos - this->last_pos );
+            if( diff >= this->min_change && this->min_change > 0 ){
+                send_status = true;
+                this->last_pos = this->pos;
+            }
+        }
+
+        // closed status has it changed ?
+        bool prev_closed = this->is_closed;
+        if( this->readClosed() != prev_closed ){
+            send_status = true;
+        }
+        
+        if( send_status ){
+            doorSendStatus( this );
         }
         
 #ifdef DOOR_DEBUG
+  /*
     } else {
         Serial.print( F( "[Door::runLoop] child_id=" ));
         Serial.print( this->child_id );
         Serial.println( F( " is disabled" ));
+        */
 #endif
     }
 }
@@ -271,57 +251,30 @@ void Door::pushButton( byte level )
 }
 
 /**
- * Door::sendState:
+ * Door::setMinPositionChange:
+ * @min_change: the minimal position changed to be published.
  * 
- * Sends the Up/Down state message.
- * 
- * Public
- */
-void Door::sendState( void )
-{
-#ifdef DOOR_DEBUG
-    Serial.print( F( "[Door::sendState] child_id=" ));
-    Serial.print( this->child_id );
-    Serial.print( F( ": move=" ));
-    Serial.print( this->move_loop );
-    Serial.print( " (" );
-    Serial.print( Door::StateToStr( this->move_loop ));
-    Serial.println( ")" );
-#endif
-    doorSendState( this->child_id, this->move_loop );
-    this->state_timer.restart();
-}
-
-/**
- * Door::sendPosition:
- * 
- * Sends the position message.
+ * Set the @min_change.
  * 
  * Public
  */
-void Door::sendPosition( void )
+void Door::setMinPositionChange( uint8_t min_change )
 {
-#ifdef DOOR_DEBUG
-    Serial.print( F( "[Door::sendPosition] child_id=" ));
-    Serial.print( this->child_id );
-    Serial.print( F( ": pos=" ));
-    Serial.println( this->pos );
-#endif
-    doorSendPosition( this->child_id, this->pos );
-    this->position_timer.restart();
+    this->min_change = min_change;
 }
 
 /**
- * Door::StateToStr:
+ * Door::MoveToStr:
+ * @move_id: the move identifier.
  * 
- * Returns: a string which descrive the move.
+ * Returns: a string which descrive the @move_id.
  * 
  * Static Public
  */
-static const char * Door::StateToStr( uint8_t state )
+static const char * Door::MoveToStr( uint8_t move_id )
 {
-    const char *cstr = "UnknwonState";
-    switch( state ){
+    const char *cstr = "UnknownMoveId";
+    switch( move_id ){
       case DOOR_NOMOVE:
         cstr = "DOOR_NOMOVE";
         break;
@@ -336,25 +289,85 @@ static const char * Door::StateToStr( uint8_t state )
 }
 
 /**
- * Door::getEnabled:
+ * Door::readClosed:
+ * 
+ * Returns: %TRUE if the door is closed.
+ * 
+ * Private
+ */
+bool Door::readClosed( void )
+{
+    bool was_closed = this->is_closed;
+    byte value = digitalRead( this->closed_pin );
+    this->is_closed = ( value == LOW );
+#ifdef DOOR_DEBUG
+    if( was_closed != this->is_closed ){
+        Serial.print( F( "[Door::readClosed] child_id=" ));
+        Serial.print( this->child_id );
+        Serial.print( F( ", closed=" ));
+        Serial.println( this->is_closed ? "True":"False" );
+    }
+#endif
+    return( this->is_closed );
+}
+
+/**
+ * Door::readEnabled:
  * 
  * Returns: %TRUE if the door is enabled.
  * 
  * Private
  */
-bool Door::getEnabled( void )
+bool Door::readEnabled( void )
 {
     bool was_enabled = this->is_enabled;
     byte value = digitalRead( this->enabled_pin );
     this->is_enabled = ( value == HIGH );
 #ifdef DOOR_DEBUG
     if( was_enabled != this->is_enabled ){
-        Serial.print( F( "[Door::getEnabled] child_id=" ));
+        Serial.print( F( "[Door::readEnabled] child_id=" ));
         Serial.print( this->child_id );
         Serial.print( F( ", enabled=" ));
         Serial.println( this->is_enabled ? "True":"False" );
     }
 #endif
     return( this->is_enabled );
+}
+
+/**
+ * Door::readCurrentMove:
+ * 
+ * Returns: the type of the current move after debounce.
+ * 
+ * Ignore any new move if the debouncing timer has been started.
+ * 
+ * Private
+ */
+uint8_t Door::readCurrentMove( void )
+{
+    /* if the timer is started, we are currently debouncing
+     *  the last move - just ignore others
+     *  this->move_loop here is the move at the last loop before this one */
+    if( this->debounce_timer.isStarted()){
+        return( this->move_loop );
+    }
+
+    /* else return the current move
+     *  starting the debouncing timer if we are stopping */
+    uint8_t current = DOOR_NOMOVE;
+    byte value = digitalRead( this->opening_pin );
+    if( value == LOW ){
+        current = DOOR_MOVEUP;
+    } else {
+        value = digitalRead( this->closing_pin );
+        if( value == LOW ){
+            current = DOOR_MOVEDOWN;
+        }
+    }
+    if( current == DOOR_NOMOVE && current != this->move_loop ){
+        this->debounce_timer.start();
+    }
+
+    return( current );
 }
 

@@ -1,0 +1,445 @@
+0 MCO:BGN:INIT NODE,CP=RNNNAS-,VER=2.1.1
+3 TSM:INIT
+4 TSF:WUR:MS=0
+11 TSM:INIT:TSP OK
+13 TSF:SID:OK,ID=3
+15 TSM:FPAR
+51 TSF:MSG:SEND,3-3-255-255,s=255,c=3,t=7,pt=0,l=0,sg=0,ft=0,st=OK:
+542 TSF:MSG:READ,86-86-3,s=255,c=3,t=8,pt=1,l=1,sg=0:1
+547 TSF:MSG:FPAR OK,ID=86,D=2
+2058 TSM:FPAR:OK
+2059 TSM:ID
+2060 TSM:ID:OK
+2062 TSM:UPL
+2075 TSF:MSG:SEND,3-3-86-0,s=255,c=3,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+2088 TSF:MSG:READ,0-86-3,s=255,c=3,t=25,pt=1,l=1,sg=0:2
+2094 TSF:MSG:PONG RECV,HP=2
+2096 TSM:UPL:OK
+2098 TSM:READY:ID=3,PAR=86,DIS=2
+2137 !TSF:MSG:SEND,3-3-86-0,s=255,c=3,t=15,pt=6,l=2,sg=0,ft=0,st=NACK:0100
+4179 !TSF:MSG:SEND,3-3-86-0,s=255,c=0,t=17,pt=0,l=5,sg=0,ft=1,st=NACK:2.1.1
+4222 !TSF:MSG:SEND,3-3-86-0,s=255,c=3,t=6,pt=1,l=1,sg=0,ft=2,st=NACK:86
+4230 TSF:MSG:READ,0-86-3,s=255,c=3,t=6,pt=0,l=1,sg=0:M
+[presentation]
+[presentation_my_sensors]
+4277 !TSF:MSG:SEND,3-3-86-0,s=255,c=3,t=11,pt=0,l=14,sg=0,ft=3,st=NACK:mysGarageDoors
+4324 !TSF:MSG:SEND,3-3-86-0,s=255,c=3,t=12,pt=0,l=8,sg=0,ft=4,st=NACK:1.0-2017
+4367 !TSF:MSG:SEND,3-3-86-0,s=1,c=0,t=23,pt=0,l=0,sg=0,ft=5,st=NACK:
+[presentation_door] child_id=10
+4409 !TSF:MSG:SEND,3-3-86-0,s=10,c=0,t=23,pt=0,l=0,sg=0,ft=6,st=NACK:
+4443 TSF:MSG:SEND,3-3-86-0,s=11,c=0,t=23,pt=0,l=0,sg=0,ft=7,st=OK:
+4483 TSF:MSG:SEND,3-3-86-0,s=12,c=0,t=23,pt=0,l=0,sg=0,ft=0,st=OK:
+4508 TSF:MSG:SEND,3-3-86-0,s=13,c=0,t=23,pt=0,l=0,sg=0,ft=0,st=OK:
+4549 !TSF:MSG:SEND,3-3-86-0,s=14,c=0,t=23,pt=0,l=0,sg=0,ft=0,st=NACK:
+[presentation_door] child_id=20
+4591 !TSF:MSG:SEND,3-3-86-0,s=20,c=0,t=23,pt=0,l=0,sg=0,ft=1,st=NACK:
+4632 !TSF:MSG:SEND,3-3-86-0,s=21,c=0,t=23,pt=0,l=0,sg=0,ft=2,st=NACK:
+4654 TSF:MSG:SEND,3-3-86-0,s=22,c=0,t=23,pt=0,l=0,sg=0,ft=3,st=OK:
+4695 !TSF:MSG:SEND,3-3-86-0,s=23,c=0,t=23,pt=0,l=0,sg=0,ft=0,st=NACK:
+4737 !TSF:MSG:SEND,3-3-86-0,s=24,c=0,t=23,pt=0,l=0,sg=0,ft=1,st=NACK:
+4743 MCO:REG:REQ
+4780 !TSF:MSG:SEND,3-3-86-0,s=255,c=3,t=26,pt=1,l=1,sg=0,ft=2,st=NACK:2
+4788 TSF:MSG:READ,0-86-3,s=255,c=3,t=27,pt=1,l=1,sg=0:1
+4793 MCO:PIM:NODE REG=1
+4795 MCO:BGN:STP
+[setup]
+[eeprom_read]
+[eeprom_dump] door n° 1 opening duration=0
+[eeprom_dump] door n° 1 closing duration=0
+[eeprom_dump] door n° 2 opening duration=16888
+[eeprom_dump] door n° 2 closing duration=17968
+[eeprom_compute_average] average=17428
+[pwiTimer::dump]: st_count=8/15
+[pwiTimer::objDump] idx=0, label=MainTimer, delay_ms=250, once=False, cb=3447, user_data=0, debug=False
+[pwiTimer::objDump] idx=1, label=UnchangedTimer, delay_ms=3600000, once=False, cb=5898, user_data=0, debug=True
+[pwiTimer::objDump] idx=2, label=LearningOpenCloseTimer, delay_ms=5000, once=True, cb=2930, user_data=793, debug=True
+[pwiTimer::objDump] idx=3, label=LearningBetweenDoorsTimer, delay_ms=5000, once=True, cb=2912, user_data=793, debug=True
+[pwiTimer::objDump] idx=4, label=DoorDebouncingTimer, delay_ms=1000, once=True, cb=4392, user_data=1461, debug=True
+[pwiTimer::objDump] idx=5, label=DoorPushButtonTimer, delay_ms=500, once=True, cb=5577, user_data=1461, debug=True
+[pwiTimer::objDump] idx=6, label=DoorDebouncingTimer, delay_ms=1000, once=True, cb=4392, user_data=1408, debug=True
+[pwiTimer::objDump] idx=7, label=DoorPushButtonTimer, delay_ms=500, once=True, cb=5577, user_data=1408, debug=True
+4894 MCO:BGN:INIT OK,TSP=1
+[Door::readEnabled] child_id=20, enabled=True
+[Door::readClosed] child_id=20, closed=True
+5183 !TSF:MSG:SEND,3-3-86-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=3,st=NACK:1
+5225 !TSF:MSG:SEND,3-3-86-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=4,st=NACK:0
+5267 !TSF:MSG:SEND,3-3-86-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=5,st=NACK:0
+5309 !TSF:MSG:SEND,3-3-86-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=6,st=NACK:0
+5351 !TSF:MSG:SEND,3-3-86-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=7,st=NACK:1
+5358 !TSM:READY:UPL FAIL,SNP
+5360 TSM:FPAR
+5397 TSF:MSG:SEND,3-3-255-255,s=255,c=3,t=7,pt=0,l=0,sg=0,ft=8,st=OK:
+5780 TSF:MSG:READ,0-0-3,s=255,c=3,t=8,pt=1,l=1,sg=0:0
+5785 TSF:MSG:FPAR OK,ID=0,D=1
+7404 TSM:FPAR:OK
+7405 TSM:ID
+7406 TSM:ID:OK
+7408 TSM:UPL
+7411 TSF:MSG:SEND,3-3-0-0,s=255,c=3,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+7420 TSF:MSG:READ,0-0-3,s=255,c=3,t=25,pt=1,l=1,sg=0:1
+7426 TSF:MSG:PONG RECV,HP=1
+7429 TSM:UPL:OK
+7430 TSM:READY:ID=3,PAR=0,DIS=1
+[Door::readClosed] child_id=20, closed=False
+135386 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+135395 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+135403 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+135410 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+135418 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::readClosed] child_id=20, closed=True
+136933 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+136942 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+136950 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+136957 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+136966 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+143250 TSF:MSG:READ,0-0-3,s=20,c=1,t=48,pt=0,l=12,sg=0:1_open_close
+143256 TSF:MSG:ACK REQ
+143261 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=48,pt=0,l=12,sg=0,ft=0,st=OK:1_open_close
+[Door::pushButton] child_id=20: level=High
+[pwiTimer::objLoop] label=DoorPushButtonTimer, delay_ms=500, start_ms=143268, duration=501
+[Door::pushButton] child_id=20: level=Low
+[Door::runLoop] duration=0, average=17428, pos=100
+186424 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+186433 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+186441 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+186449 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:100
+186458 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=293, average=17428, pos=99
+[Door::runLoop] duration=544, average=17428, pos=97
+[Door::readClosed] child_id=20, closed=False
+186970 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+186981 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+186989 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+186997 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:97
+187008 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::runLoop] duration=843, average=17428, pos=96
+[Door::runLoop] duration=1094, average=17428, pos=94
+[Door::readClosed] child_id=20, closed=True
+187521 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+187532 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+187540 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+187548 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:94
+187556 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=1392, average=17428, pos=93
+[Door::runLoop] duration=1643, average=17428, pos=91
+[Door::runLoop] duration=1894, average=17428, pos=90
+188318 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+188331 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+188338 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+188346 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:90
+188354 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=2189, average=17428, pos=88
+[Door::runLoop] duration=2440, average=17428, pos=86
+[Door::runLoop] duration=2691, average=17428, pos=85
+[Door::runLoop] duration=2943, average=17428, pos=84
+[Door::runLoop] duration=3195, average=17428, pos=82
+[Door::runLoop] duration=3447, average=17428, pos=81
+[Door::runLoop] duration=3698, average=17428, pos=79
+190123 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+190133 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+190140 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+190148 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:79
+190156 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=3991, average=17428, pos=78
+[Door::runLoop] duration=4243, average=17428, pos=76
+[Door::runLoop] duration=4495, average=17428, pos=75
+[Door::runLoop] duration=4746, average=17428, pos=73
+[Door::runLoop] duration=4998, average=17428, pos=72
+[Door::runLoop] duration=5250, average=17428, pos=70
+[Door::runLoop] duration=5502, average=17428, pos=69
+191926 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+191936 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+191943 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+191951 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:69
+191960 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=5795, average=17428, pos=67
+[Door::runLoop] duration=6046, average=17428, pos=66
+[Door::runLoop] duration=6299, average=17428, pos=64
+[Door::runLoop] duration=6550, average=17428, pos=63
+[Door::runLoop] duration=6801, average=17428, pos=61
+[Door::runLoop] duration=7053, average=17428, pos=60
+[Door::runLoop] duration=7305, average=17428, pos=59
+193729 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+193739 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+193746 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+193755 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:59
+193763 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=7598, average=17428, pos=57
+[Door::runLoop] duration=7849, average=17428, pos=55
+[Door::runLoop] duration=8100, average=17428, pos=54
+[Door::runLoop] duration=8352, average=17428, pos=53
+[Door::runLoop] duration=8604, average=17428, pos=51
+[Door::runLoop] duration=8855, average=17428, pos=50
+[Door::runLoop] duration=9106, average=17428, pos=48
+195530 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+195540 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+195548 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+195556 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:48
+195564 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=9399, average=17428, pos=47
+[Door::runLoop] duration=9650, average=17428, pos=45
+[Door::runLoop] duration=9901, average=17428, pos=44
+[Door::runLoop] duration=10153, average=17428, pos=42
+[Door::runLoop] duration=10405, average=17428, pos=41
+[Door::runLoop] duration=10657, average=17428, pos=39
+[Door::runLoop] duration=10909, average=17428, pos=38
+197334 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+197344 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+197351 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+197359 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:38
+197367 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=11202, average=17428, pos=36
+[Door::runLoop] duration=11454, average=17428, pos=35
+[Door::runLoop] duration=11706, average=17428, pos=33
+[Door::runLoop] duration=11958, average=17428, pos=32
+[Door::runLoop] duration=12210, average=17428, pos=30
+[Door::runLoop] duration=12462, average=17428, pos=29
+[Door::runLoop] duration=12714, average=17428, pos=28
+199138 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+199148 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+199155 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+199163 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:28
+199172 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=13007, average=17428, pos=26
+[Door::runLoop] duration=13259, average=17428, pos=24
+[Door::runLoop] duration=13511, average=17428, pos=23
+[Door::runLoop] duration=13763, average=17428, pos=22
+[Door::runLoop] duration=14015, average=17428, pos=20
+[Door::runLoop] duration=14267, average=17428, pos=19
+[Door::runLoop] duration=14519, average=17428, pos=17
+200943 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+200953 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+200961 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+200969 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:17
+200977 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=14812, average=17428, pos=16
+[Door::runLoop] duration=15064, average=17428, pos=14
+[Door::readClosed] child_id=20, closed=False
+201490 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+201501 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+201509 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+201518 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:14
+201526 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::runLoop] duration=15361, average=17428, pos=12
+[Door::runLoop] duration=15613, average=17428, pos=11
+[Door::runLoop] duration=15865, average=17428, pos=9
+[Door::runLoop] duration=16117, average=17428, pos=8
+[Door::runLoop] duration=16369, average=17428, pos=7
+202793 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+202804 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+202811 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:1
+202819 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:7
+202827 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::runLoop] duration=16662, average=17428, pos=5
+[Door::runLoop] duration=16913, average=17428, pos=3
+[Door::runLoop] duration=17164, average=17428, pos=2
+[Door::runLoop] duration=17416, average=17428, pos=1
+[Door::runLoop] duration=17667, average=17428, pos=0
+[Door::runLoop] duration=17919, average=17428, pos=0
+[Door::runLoop] duration=18171, average=17428, pos=0
+[Door::runLoop] duration=18423, average=17428, pos=0
+[Door::runLoop] duration=18675, average=17428, pos=0
+205349 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+205358 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+205366 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+205374 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+205381 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[pwiTimer::objLoop] label=DoorDebouncingTimer, delay_ms=1000, start_ms=205348, duration=1001
+[Door::readClosed] child_id=20, closed=True
+207649 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+207659 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+207667 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+207674 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+207682 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+218172 TSF:MSG:READ,0-0-255,s=255,c=3,t=20,pt=0,l=0,sg=0:
+218177 TSF:MSG:BC
+218248 TSF:MSG:SEND,3-3-0-0,s=255,c=3,t=21,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::readClosed] child_id=20, closed=False
+353803 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+353812 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+353820 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+353827 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+353836 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::readClosed] child_id=20, closed=True
+354095 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+354104 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+354112 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+354119 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+354127 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::readClosed] child_id=20, closed=False
+367190 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+367199 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+367207 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+367217 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+367224 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+[Door::readClosed] child_id=20, closed=True
+368236 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+368245 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+368253 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+368261 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+368269 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=0, average=17428, pos=0
+390116 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+390127 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+390135 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+390144 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:0
+390152 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=295, average=17428, pos=1
+[Door::runLoop] duration=546, average=17428, pos=3
+[Door::runLoop] duration=798, average=17428, pos=4
+[Door::runLoop] duration=1049, average=17428, pos=6
+[Door::runLoop] duration=1300, average=17428, pos=7
+[Door::runLoop] duration=1551, average=17428, pos=8
+[Door::runLoop] duration=1802, average=17428, pos=10
+[Door::runLoop] duration=2054, average=17428, pos=11
+[Door::runLoop] duration=2305, average=17428, pos=13
+[Door::runLoop] duration=2556, average=17428, pos=14
+[Door::runLoop] duration=2807, average=17428, pos=16
+[Door::runLoop] duration=3058, average=17428, pos=17
+393175 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+393185 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+393192 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+393200 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:17
+393208 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=3351, average=17428, pos=19
+[Door::runLoop] duration=3602, average=17428, pos=20
+[Door::runLoop] duration=3853, average=17428, pos=22
+[Door::runLoop] duration=4104, average=17428, pos=23
+[Door::runLoop] duration=4355, average=17428, pos=24
+[Door::runLoop] duration=4606, average=17428, pos=26
+[Door::runLoop] duration=4857, average=17428, pos=27
+394973 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+394983 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+394990 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+394998 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:27
+395006 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=5150, average=17428, pos=29
+[Door::runLoop] duration=5402, average=17428, pos=30
+[Door::runLoop] duration=5654, average=17428, pos=32
+[Door::runLoop] duration=5906, average=17428, pos=33
+[Door::runLoop] duration=6157, average=17428, pos=35
+[Door::runLoop] duration=6408, average=17428, pos=36
+[Door::runLoop] duration=6659, average=17428, pos=38
+396775 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+396785 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+396792 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+396801 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:38
+396809 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=6952, average=17428, pos=39
+[Door::runLoop] duration=7204, average=17428, pos=41
+[Door::runLoop] duration=7455, average=17428, pos=42
+[Door::runLoop] duration=7706, average=17428, pos=44
+[Door::runLoop] duration=7958, average=17428, pos=45
+[Door::runLoop] duration=8210, average=17428, pos=47
+[Door::runLoop] duration=8461, average=17428, pos=48
+398577 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+398587 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+398595 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+398603 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:48
+398611 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=8754, average=17428, pos=50
+[Door::runLoop] duration=9006, average=17428, pos=51
+[Door::runLoop] duration=9257, average=17428, pos=53
+[Door::runLoop] duration=9508, average=17428, pos=54
+[Door::runLoop] duration=9759, average=17428, pos=55
+[Door::runLoop] duration=10010, average=17428, pos=57
+[Door::runLoop] duration=10262, average=17428, pos=58
+400378 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+400389 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+400396 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+400404 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:58
+400412 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=10555, average=17428, pos=60
+[Door::runLoop] duration=10807, average=17428, pos=62
+[Door::runLoop] duration=11059, average=17428, pos=63
+[Door::runLoop] duration=11311, average=17428, pos=64
+[Door::runLoop] duration=11563, average=17428, pos=66
+[Door::runLoop] duration=11815, average=17428, pos=67
+[Door::runLoop] duration=12067, average=17428, pos=69
+402183 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+402193 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+402200 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+402208 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:69
+402216 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=12361, average=17428, pos=70
+[Door::runLoop] duration=12613, average=17428, pos=72
+[Door::runLoop] duration=12865, average=17428, pos=73
+[Door::runLoop] duration=13117, average=17428, pos=75
+[Door::runLoop] duration=13369, average=17428, pos=76
+[Door::runLoop] duration=13621, average=17428, pos=78
+[Door::runLoop] duration=13873, average=17428, pos=79
+403989 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+403999 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+404006 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+404015 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:79
+404023 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=14166, average=17428, pos=81
+[Door::runLoop] duration=14418, average=17428, pos=82
+[Door::runLoop] duration=14670, average=17428, pos=84
+[Door::runLoop] duration=14922, average=17428, pos=85
+[Door::runLoop] duration=15174, average=17428, pos=87
+[Door::runLoop] duration=15426, average=17428, pos=88
+[Door::runLoop] duration=15678, average=17428, pos=89
+405794 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+405805 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+405812 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+405820 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:89
+405828 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=15971, average=17428, pos=91
+[Door::runLoop] duration=16223, average=17428, pos=93
+[Door::runLoop] duration=16475, average=17428, pos=94
+[Door::runLoop] duration=16727, average=17428, pos=95
+[Door::runLoop] duration=16979, average=17428, pos=97
+[Door::runLoop] duration=17231, average=17428, pos=98
+[Door::runLoop] duration=17483, average=17428, pos=100
+407599 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+407609 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:1
+407616 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+407624 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:100
+407632 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[Door::runLoop] duration=17776, average=17428, pos=100
+[Door::runLoop] duration=18028, average=17428, pos=100
+[Door::runLoop] duration=18280, average=17428, pos=100
+[Door::runLoop] duration=18532, average=17428, pos=100
+[Door::runLoop] duration=18784, average=17428, pos=100
+[Door::runLoop] duration=19036, average=17428, pos=100
+[Door::runLoop] duration=19288, average=17428, pos=100
+[Door::runLoop] duration=19540, average=17428, pos=100
+[Door::runLoop] duration=19792, average=17428, pos=100
+[Door::runLoop] duration=20044, average=17428, pos=100
+[Door::runLoop] duration=20297, average=17428, pos=100
+[Door::runLoop] duration=20549, average=17428, pos=100
+[Door::runLoop] duration=20801, average=17428, pos=100
+[Door::runLoop] duration=21053, average=17428, pos=100
+[Door::runLoop] duration=21305, average=17428, pos=100
+[Door::runLoop] duration=21557, average=17428, pos=100
+[Door::runLoop] duration=21809, average=17428, pos=100
+[Door::runLoop] duration=22061, average=17428, pos=100
+[Door::runLoop] duration=22313, average=17428, pos=100
+[Door::runLoop] duration=22565, average=17428, pos=100
+[Door::runLoop] duration=22817, average=17428, pos=100
+[Door::runLoop] duration=23070, average=17428, pos=100
+[Door::runLoop] duration=23322, average=17428, pos=100
+[Door::runLoop] duration=23574, average=17428, pos=100
+[Door::runLoop] duration=23826, average=17428, pos=100
+[Door::runLoop] duration=24078, average=17428, pos=100
+[Door::runLoop] duration=24330, average=17428, pos=100
+[Door::runLoop] duration=24582, average=17428, pos=100
+[Door::runLoop] duration=24834, average=17428, pos=100
+[Door::runLoop] duration=25086, average=17428, pos=100
+[Door::runLoop] duration=25338, average=17428, pos=100
+[Door::runLoop] duration=25590, average=17428, pos=100
+[Door::runLoop] duration=25842, average=17428, pos=100
+[Door::runLoop] duration=26095, average=17428, pos=100
+[Door::runLoop] duration=26347, average=17428, pos=100
+[Door::runLoop] duration=26599, average=17428, pos=100
+[Door::runLoop] duration=26851, average=17428, pos=100
+[Door::runLoop] duration=27103, average=17428, pos=100
+[Door::runLoop] duration=27355, average=17428, pos=100
+417722 TSF:MSG:SEND,3-3-0-0,s=20,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+417730 TSF:MSG:SEND,3-3-0-0,s=21,c=1,t=29,pt=1,l=1,sg=0,ft=0,st=OK:0
+417738 TSF:MSG:SEND,3-3-0-0,s=22,c=1,t=30,pt=1,l=1,sg=0,ft=0,st=OK:0
+417746 TSF:MSG:SEND,3-3-0-0,s=23,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:100
+417755 TSF:MSG:SEND,3-3-0-0,s=24,c=1,t=24,pt=1,l=1,sg=0,ft=0,st=OK:1
+[pwiTimer::objLoop] label=DoorDebouncingTimer, delay_ms=1000, start_ms=417721, duration=1001
+
