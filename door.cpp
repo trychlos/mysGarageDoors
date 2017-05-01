@@ -67,8 +67,7 @@ Door::Door( uint8_t child_id, uint8_t command_pin, uint8_t opening_pin, uint8_t 
     pinMode( this->closing_pin, INPUT );
 
     this->closed_pin = closed_pin;
-    digitalWrite( this->closed_pin, LOW );
-    pinMode( this->closed_pin, INPUT );
+    pinMode( this->closed_pin, INPUT_PULLUP );
     this->is_closed = false;
 
     this->enabled_pin = enabled_pin;
