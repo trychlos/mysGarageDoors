@@ -20,12 +20,18 @@
  Note that the push button in this mechanism only changes the move:
  - if the door was in move, the door is stopped;
  - if the door was not in move, then start the door the opposite direction
-   the door was before it stopped.
+   the door was before it last stopped.
 
  We have to add a dry contact to know if the door is fully closed.
 
  During the move, we evaluate the position by comparing the duration of
  the move with the average delay.
+
+ Note also that the energy is very briefly stopped at end of move. As a
+ consequence, the Arduino processor is reset. As another consequence, the
+ learning program has to save its state in EEPROM, in order to be able to
+ continue after a reset.
+ This energy cut is ( tried to be) handled via a 1000µF capacity.
 
 -----------------------------------------------------------------------
  Interactions
@@ -34,77 +40,11 @@
  The MySensors node present one main ID to the controller, to manage global
  actions and request or set global parameters.
 
- Each door present four IDs to the controller:
+ Each door present five IDs to the controller:
  - the first let us request or set parameters of the door management,
- - the three others are target of up, down and position messages (resp.)
-
- The three messages are sent while the door is moving (and if the change
- is worth to be signaled).
-
- On configurable timeout, a full configuration dump is send to the controller
- when no change is detected. This include the global parameters along with
- a dump for each door.
-
- Below interactions are seen from MySensors node point of view.
-
- - CHILD_MAIN (S_CUSTOM)
-   Present the node to the controller, and let us manage global actions.
-    |
-    +- Received from controller
-    |   |
-    |   +- C_SET
-    |   |   |
-    |   |   +- V_CUSTOM with payload = '1': raz the eeprom's MySensors user data (256 bytes).
-    |   |   +- V_CUSTOM with payload = '2': run the learning program.
-    |   |   +- V_CUSTOM with payload = '3=<value>': set the unchanged timeout (default is 1h).
-    |   |   +- V_CUSTOM with payload = '4=<value>': set the minimal change to be published (default is 10%).
-    |   |
-    |   +- C_REQ
-    |       |
-    |       +- V_CUSTOM with payload = '1': request a configuration dump
-    |
-    +- Sent to controller
-        |
-        +- V_VAR1: average (ms)
-        +- V_VAR2: unchanged timeout (ms)
-        +- V_VAR3: minimal change to be published (%)
-
- - CHILD_DOOR1/2+DOOR_MAIN (S_CUSTOM)
-    |
-    +- Received from controller
-    |   |
-    |   +- C_SET
-    |       |
-    |       +- V_CUSTOM with payload = '1': open/close the door.
-    |
-    +- Sent to controller
-        |
-        +- V_VAR1: whether the door is enabled (in answer to configuration dump request)
-
- - CHILD_DOOR1/2+DOOR_UP (S_CUSTOM)
-    |
-    +- Sent to controller
-        |
-        +- V_UP: whether the door is opening (during move or in answer to configuration dump request)
-
- - CHILD_DOOR1/2+DOOR_DOWN (S_CUSTOM)
-    |
-    +- Sent to controller
-        |
-        +- V_DOWN: whether the door is closing (during move or in answer to configuration dump request)
-
- - CHILD_DOOR1/2+DOOR_POSITION (S_CUSTOM)
-    |
-    +- Sent to controller
-        |
-        +- V_VAR1: position 0=fully closed, 100=fully opened (during move or in answer to configuration dump request)
-
- - CHILD_DOOR1/2+DOOR_CLOSED (S_CUSTOM)
-    |
-    +- Sent to controller
-        |
-        +- V_VAR1: true if the door is closed (from the contact)
+ - the four others are target of up, down and position messages (resp.).
 
 -----------------------------------------------------------------------
  P. Wieser - Created on 2017, apr. 26th
+             Last updated on 2019, oct. 6th
 
