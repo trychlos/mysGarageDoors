@@ -1,37 +1,40 @@
-#ifndef __DOOR_LEARNING_H__
-#define __DOOR_LEARNING_H__
+#ifndef __LEARNING_H__
+#define __LEARNING_H__
 
-#include "door.h"
+#include <Arduino.h>
+#include "hub_def.h"
 
 /* The learning phases
  */
 enum {
     LEARNING_NONE = 0,
-    LEARNING_OPEN,                            // open the door
-    LEARNING_WAITOPEN,                        // wait for actually opening
+    LEARNING_OPENHAVETO,                      // have to open the door
+    LEARNING_OPENWAITFORMOVE,                 // have pushed the button, wait for moving up
     LEARNING_OPENING,                         // door is opening, wait for end of move
-    LEARNING_CLOSE,                           // close the door
-    LEARNING_WAITCLOSE,                       // wait for actually closing
+    LEARNING_OPENWAITFORTIMEOUT,              // end of opening, wait for open/close timeout
+    LEARNING_CLOSEHAVETO,                     // have to close the door
+    LEARNING_CLOSEWAITFORMOVE,                // have pushed the button, wait for actually moving down
     LEARNING_CLOSING,                         // door is closing, wait for end of move
+    LEARNING_CLOSEWAITFORTIMEOUT,             // end of closing, wait for between doors timeout
 };
-
-#define LEARNING_OPENCLOSE_WAIT     5000      /* wait 5 sec. between opening and closing a door */
-#define LEARNING_BETWEENDOORS_WAIT  5000      /* wait 5 sec. between closing the first door and opening the second one */
 
 /* a data structure to manage the learning program
  */
 typedef struct {
-    Door          *door;
-    Door          *next;
-    uint8_t        phase;
     unsigned long  ms;
     unsigned long *opening_ms;
     unsigned long *closing_ms;
 }
-  sLearning;
+  learning_t;
 
-const char *learning_dump( uint8_t learning );
-void        learning_dump( sLearning &learning );
+void                       learning_dump( hub_t *hub );
+uint8_t                    learning_getNext( hub_t *hub, uint8_t cur_id );
+void                       learning_onBetweenDoorsCb( hub_t *hub );
+void                       learning_onOpenCloseCb( hub_t *hub );
+void                       learning_runProgram( hub_t *hub, uint8_t phase );
+void                       learning_setFromEeprom( hub_t *hub );
+void                       learning_startProgram( hub_t *hub );
+const __FlashStringHelper *learning_toStr( uint8_t phase );
 
-#endif // __DOOR_LEARNING_H__
+#endif // __LEARNING_H__
 

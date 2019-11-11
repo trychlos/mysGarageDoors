@@ -1,6 +1,6 @@
 /*
  * MysGarageDoors
- * Copyright (C) 2017 Pierre Wieser <pwieser@trychlos.org>
+ * Copyright (C) 2017-2019 Pierre Wieser <pwieser@trychlos.org>
  *
  * Description:
  * Manages in one MySensors-compatible board the two garage doors.
@@ -17,7 +17,7 @@
  * For each garage door:
  * - we have a command to open/close the door
  * - we are able to detect:
- *   > the opening/closing moves (when the motors is active)
+ *   > the opening/closing moves (when the motor is active)
  *   > when the door is closed (via a fixed contact).
  * 
  * From the motor detection, and by measuring the move duration, we are able to
@@ -32,7 +32,7 @@
  * A learning program is defined.
  * It is expected to be run once, when the board is put into service:
  * - the two doors are expected to be fully closed;
- * - for each of the two doors, the learning program will fully open and the fully
+ * - for each of the two doors, the learning program will fully open and then fully
  *   close the door.
  * This sequence is used to estimate the duration of a full move (opening/closing).
  * The four measures are recorded in the EEPROM as four unsigned longs.
@@ -42,189 +42,100 @@
  */
 
 // uncomment for debugging this sketch
-#define DEBUG_ENABLED
+#define SKETCH_DEBUG
 
-// uncomment for debugging the EEPROM code
-#define EEPROM_DEBUG
+static char const sketchName[] PROGMEM    = "mysGarageDoors";
+static char const sketchVersion[] PROGMEM = "2.0-2019";
 
-// uncomment for having Door class
-#define HAVE_DOOR
-
-// uncomment for having mySensors radio enabled
-#define HAVE_NRF24_RADIO
-
-#include "eeprom.h"
-#include "pwi_timer.h"
-
-static const char * const thisSketchName    = "mysGarageDoors";
-static const char * const thisSketchVersion = "1.0-2017";
-
-#define MY_DEBUG
+#define MY_REPEATER_FEATURE
 #define MY_RADIO_NRF24
-#define MY_RF24_CHANNEL 103
-#define MY_SIGNING_SOFT
-#define MY_SIGNING_SOFT_RANDOMSEED_PIN 7
-#define MY_SOFT_HMAC_KEY 0xe5,0xc5,0x36,0xd8,0x4b,0x45,0x49,0x25,0xaa,0x54,0x3b,0xcc,0xf4,0xcb,0xbb,0xb7,0x77,0xa4,0x80,0xae,0x83,0x75,0x40,0xc2,0xb1,0xcb,0x72,0x50,0xaa,0x8a,0xf1,0x6d
-// do not check the uplink if we choose to disable the radio
-#ifndef HAVE_NRF24_RADIO
-#define MY_TRANSPORT_WAIT_READY_MS 1000
-#define MY_TRANSPORT_UPLINK_CHECK_DISABLED
-#endif // HAVE_NRF24_RADIO
+#define MY_RF24_PA_LEVEL RF24_PA_HIGH
+//#include <pwi_myhmac.h>
+#include <pwi_myrf24.h>
 #include <MySensors.h>
+
+MyMessage msg;
 
 enum {
     CHILD_MAIN = 1,
-    CHILD_ID_DOOR1 = 10,
-    CHILD_ID_DOOR2 = 20,
+    CHILD_ID_DOOR1 = 20,
+    CHILD_ID_DOOR2 = 40,
 };
 
-sEeprom eeprom;
-unsigned long average_ms = 0;
-
-/* main loop is 100 ms. */
-#define MAIN_LOOP             250
-static const char   *st_main_label        = "MainTimer";
-pwiTimer main_timer;
-
-/* unchanged default timeout is 1h */
-#define UNCHANGED_TIMEOUT 3600000
-static const char   *st_unchanged_label   = "UnchangedTimer";
-static unsigned long st_unchanged_timeout = UNCHANGED_TIMEOUT;
-pwiTimer unchanged_timer;
-
-pwiTimer learning_oc_timer;           /* wait before opening and closing a door */
-pwiTimer learning_bd_timer;           /* wait before closing door 1 and opening door 2 */
-
-static const char *st_learning_oc = "LearningOpenCloseTimer";
-static const char *st_learning_bd = "LearningBetweenDoorsTimer";
-
-MyMessage msgVar1( 0, V_VAR1 );
-MyMessage msgVar2( 0, V_VAR2 );
-MyMessage msgVar3( 0, V_VAR3 );
-
-/* **************************************************************************************
- * MySensors gateway
+/* Include our own classes
  */
-void presentation_my_sensors()  
-{
-#ifdef DEBUG_ENABLED
-    Serial.println( F( "[presentation_my_sensors]" ));
-#endif
-#ifdef HAVE_NRF24_RADIO
-    sendSketchInfo( thisSketchName, thisSketchVersion );
-    present( CHILD_MAIN, S_CUSTOM );
-#endif // HAVE_NRF24_RADIO
-}
+#include <pwiCommon.h>
+#include "Eeprom.h"
+static Eeprom eeprom;
+
+#include <pwiTimer.h>
+static pwiTimer st_main_timer;
+static pwiTimer st_config_timer;
+static pwiTimer st_learning_oc_timer;
+static pwiTimer st_learning_bd_timer;
 
 /* **************************************************************************************
  * Door management
  * - up to two doors
  */
-#ifdef HAVE_DOOR
-#include "door.h"
-#include "doorglobal.h"
+#include "Door.h"
 #include "learning.h"
-#include "until_now.h"
+#include "hub.h"
+
+// core hub
+static hub_t hub;
 
 // Doors objects
 Door door1( CHILD_ID_DOOR1,  5,  2,  3,  4,  6 );
 Door door2( CHILD_ID_DOOR2, A2, A5, A4, A3, A1 );
 
-// learning management
-sLearning slearning;
-void learning_set_door2( sLearning *slearn );
+// Learning management
+// Learning program may be run from a received command
+//  or by briefly pulsing the LEARNING_PIN to LOW
+//
+static learning_t st_learning;
+#define LEARNING_PIN A0
 
-MyMessage msgUp( 0, V_UP );
-MyMessage msgDown( 0, V_DOWN );
-
-/* defaults to only sent position change greater than the minimal */
-#define POSITION_MIN                       10
-static uint8_t st_position_min = POSITION_MIN;
-
-/*
- * Presents the doors to the mySensors gateway
- */
-void presentation_door( void *pdoor )
+void doorGetElapsed( uint8_t id, unsigned long *open, unsigned long *close )
 {
-    Door *door = ( Door * ) pdoor;
-    uint8_t child_id = door->getChildId();
-#ifdef DEBUG_ENABLED
-    Serial.print( F( "[presentation_door] child_id=" )); Serial.println( child_id );
-#endif
-#ifdef HAVE_NRF24_RADIO
-    present( child_id+DOOR_MAIN, S_CUSTOM );
-    present( child_id+DOOR_UP, S_CUSTOM );
-    present( child_id+DOOR_DOWN, S_CUSTOM );
-    present( child_id+DOOR_POSITION, S_CUSTOM );
-    present( child_id+DOOR_CLOSED, S_CUSTOM );
-#endif
-    door->setMinPositionChange( st_position_min );
-}
-
-void doorSendStatus( Door *door )
-{
-    uint8_t child_id = door->getChildId();
-
-    // send the enabled status
-    bool is_enabled = door->getEnabled();
-    msgVar1.setSensor( child_id+DOOR_MAIN ).set( is_enabled );
-    send( msgVar1 );
-
-    if( is_enabled ){
-        // send the move status
-        uint8_t move_id = door->getMove();
-        msgUp.setSensor( child_id+DOOR_UP );
-        msgDown.setSensor( child_id+DOOR_DOWN );
-        
-        switch( move_id ){
-            case DOOR_NOMOVE:
-                send( msgUp.set( false ));
-                send( msgDown.set( false ));
-                break;
-            case DOOR_MOVEUP:
-                send( msgUp.set( true ));
-                send( msgDown.set( false ));
-                break;
-            case DOOR_MOVEDOWN:
-                send( msgUp.set( false ));
-                send( msgDown.set( true ));
-                break;
-        }
-
-        // send the position
-        msgVar1.setSensor( child_id+DOOR_POSITION ).set( door->getPosition());
-        send( msgVar1 );
-
-        // send the closed state
-        msgVar1.setSensor( child_id+DOOR_CLOSED ).set( door->getClosed());
-        send( msgVar1 );
+    if( id == door1.getId()){
+       *open = eeprom.d.door1_opening_ms;
+       *close = eeprom.d.door1_closing_ms;
+    } else if( id == door2.getId()){
+       *open = eeprom.d.door2_opening_ms;
+       *close = eeprom.d.door2_closing_ms;
+    } else {
+        *open = 0;
+        *close = 0;
     }
-
-    unchanged_timer.restart();
-}
-#endif // HAVE_DOOR
-
-void globalSendStatus( void )
-{
-    msgVar1.setSensor( CHILD_MAIN ).set( average_ms );
-    send( msgVar1 );
-    
-    msgVar2.setSensor( CHILD_MAIN ).set( st_unchanged_timeout );
-    send( msgVar2 );
-    
-    msgVar3.setSensor( CHILD_MAIN ).set( st_position_min );
-    send( msgVar3 );
-
-    unchanged_timer.restart();
 }
 
-void onUnchangedCb( void *empty )
+/* **************************************************************************************
+ *  CHILD_MAIN Sensor
+ */
+
+void mainPresentation()
 {
-    globalSendStatus();
-#ifdef HAVE_DOOR
-    doorSendStatus( &door1 );
-    doorSendStatus( &door2 );
+#ifdef SKETCH_DEBUG
+    Serial.println( F( "mainPresentation()" ));
 #endif
+    //                                1234567890123456789012345
+    present( CHILD_MAIN,   S_CUSTOM, "Actions" );
+    present( CHILD_MAIN+1, S_CUSTOM, "UnchangedTimeout" );
+    present( CHILD_MAIN+2, S_CUSTOM, "SensorsReactTime" );
+    present( CHILD_MAIN+3, S_CUSTOM, "OpenCloseLearnDelay" );
+    present( CHILD_MAIN+4, S_CUSTOM, "InterDoorsLearnDelay" );
+    present( CHILD_MAIN+5, S_CUSTOM, "DebounceDelay" );
+    present( CHILD_MAIN+6, S_CUSTOM, "ButtonPushDelay" );
+    present( CHILD_MAIN+7, S_CUSTOM, "MinPublishedChange" );
+}
+
+void mainSetup()
+{
+#ifdef SKETCH_DEBUG
+    Serial.println( F( "mainSetup()" ));
+#endif
+    pinMode( LEARNING_PIN, INPUT_PULLUP );
 }
 
 /* **************************************************************************************
@@ -232,39 +143,55 @@ void onUnchangedCb( void *empty )
  */
 void presentation()
 {
-#ifdef DEBUG_ENABLED
-    Serial.println( F( "[presentation]" ));
+#ifdef SKETCH_DEBUG
+    Serial.println( F( "presentation()" ));
 #endif
-    presentation_my_sensors();
-#ifdef HAVE_DOOR
-    presentation_door(( void * ) &door1 );
-    presentation_door(( void * ) &door2 );
-#endif
+    mainPresentation();
+    door1.present();
+    door2.present();
 }
 
 void setup()  
 {
-#ifdef DEBUG_ENABLED
+#ifdef SKETCH_DEBUG
     Serial.begin( 115200 );
-    Serial.println( F( "[setup]" ));
+    Serial.println( F( "setup()" ));
 #endif
+    sendSketchInfo( PGMSTR( sketchName ), PGMSTR( sketchVersion ));
 
-    eeprom_read( eeprom );
-    average_ms = eeprom_compute_average( eeprom );
-    main_timer.set( st_main_label, MAIN_LOOP, false, main_loop, NULL );
-    main_timer.setDebug( false );
-    unchanged_timer.set( st_unchanged_label, st_unchanged_timeout, false, onUnchangedCb, NULL );
+    // library version
+    msg.clear();
+    mSetCommand( msg, C_INTERNAL );
+    sendAsIs( msg.setSensor( 255 ).setType( I_VERSION ).set( MYSENSORS_LIBRARY_VERSION ));
 
-#ifdef HAVE_DOOR
-    memset( &slearning, '\0', sizeof( sLearning ));
-    slearning.phase = LEARNING_NONE;
-    learning_oc_timer.set( st_learning_oc, LEARNING_OPENCLOSE_WAIT, true, onOpenCloseCb, &slearning );
-    learning_bd_timer.set( st_learning_bd, LEARNING_BETWEENDOORS_WAIT, true, onBetweenDoorsCb, &slearning );
-#endif
+    memset( &hub, '\0', sizeof( hub_t ));
+    hub.average_ms = 0;
+    hub.door1 = &door1;
+    hub.door2 = &door2;
+    hub.eeprom = &eeprom;
+    hub.oc_timer = &st_learning_oc_timer;
+    hub.bd_timer = &st_learning_bd_timer;
+    hub.learning = &st_learning;
+
+    eeprom.read();
+    hub.average_ms = eeprom.computeAverage();
+
+    mainSetup();
+    door1.setup( &hub );
+    door2.setup( &hub );
+    
+    st_main_timer.setup( "MainTimer", eeprom.d.react_time_ms, false, main_loop );
+    st_main_timer.start();
+    st_config_timer.setup( "ConfigTimer", eeprom.d.unchanged_timeout_ms, false, onUnchangedConfigCb );
+    st_config_timer.start();
+
+    memset( &st_learning, '\0', sizeof( learning_t ));
+    
+    st_learning_oc_timer.setup( "LearningOpenCloseTimer", eeprom.d.learning_oc_wait_ms, true, learning_onOpenCloseCb, &hub );
+    st_learning_bd_timer.setup( "LearningBetweenDoorsTimer", eeprom.d.learning_bd_wait_ms, true, learning_onBetweenDoorsCb, &hub );
 
     pwiTimer::Dump();
-    main_timer.start();
-    unchanged_timer.start();
+    dumpConfiguration();
 }
 
 void loop()
@@ -272,307 +199,261 @@ void loop()
     pwiTimer::Loop();
 }
 
+/* The st_main_timer callback
+ *  It is defined as recurrent, on react_time_ms period.
+ */
 void main_loop( void *empty )
 {
-#ifdef DEBUG_ENABLED
-    if( slearning.phase != LEARNING_NONE ){
-        Serial.println( F( "[loop]" ));
-        learning_dump( slearning );
+    uint8_t learning_phase = eeprom.d.learning_phase;
+
+#ifdef SKETCH_DEBUG
+    if( learning_phase != LEARNING_NONE ){
+        learning_dump( &hub );
     }
 #endif
-#ifdef HAVE_DOOR
-    door1.runLoop( average_ms );
-    door2.runLoop( average_ms );
-    
-    switch( slearning.phase ){
+    door1.runLoop( &hub );
+    door2.runLoop( &hub );
 
-        // the door is ready to be opened
-        case LEARNING_OPEN:
-            slearning.door->pushButton();
-            slearning.phase = LEARNING_WAITOPEN;
-            slearning.ms = millis();
-            break;
+    learning_runProgram( &hub, learning_phase );
 
-        // waiting for the opening move takes place
-        case LEARNING_WAITOPEN:
-            if( slearning.door->getMove() == DOOR_MOVEUP ){
-                slearning.phase = LEARNING_OPENING;
-            }
-            break;
-      
-        // the door is opening (the button has been pushed)
-        //  waiting for the end of the move
-        case LEARNING_OPENING:
-            if( slearning.door->getMove() == DOOR_NOMOVE ){
-                *( slearning.opening_ms ) = untilNow( millis(), slearning.ms );
-                learning_oc_timer.start();
-            }
-            break;
-
-        // the door is ready to be closed
-        case LEARNING_CLOSE:
-            slearning.door->pushButton();
-            slearning.phase = LEARNING_WAITCLOSE;
-            slearning.ms = millis();
-            break;
-
-        // waiting for the opening move takes place
-        case LEARNING_WAITCLOSE:
-            if( slearning.door->getMove() == DOOR_MOVEDOWN ){
-                slearning.phase = LEARNING_CLOSING;
-            }
-            break;
-
-        // the door is closing (the button has been pushed)
-        //  waiting for the end of the move
-        case LEARNING_CLOSING:
-            if( slearning.door->getMove() == DOOR_NOMOVE ){
-                *( slearning.closing_ms ) = untilNow( millis(), slearning.ms );
-                if( slearning.next ){
-                    learning_bd_timer.start();
-                } else {
-                    memset( &slearning, '\0', sizeof( sLearning ));
-                    slearning.phase = LEARNING_NONE;
-                    eeprom_write( eeprom );
-                    average_ms = eeprom_compute_average( eeprom );
-                }
-            }
-            break;
+    if( digitalRead( LEARNING_PIN ) == LOW ){
+        learning_startProgram( &hub );
     }
-#endif
 }
 
 /*
- * This is the timer callback between opening and closing a door
- */
-void onOpenCloseCb( void *user_data )
-{
-#ifdef HAVE_DOOR
-    (( sLearning * ) user_data )->phase = LEARNING_CLOSE;
-#endif
-}
-
-/*
- * This is the timer callback between closing door 1 and opening door 2
- */
-void onBetweenDoorsCb( void *user_data )
-{
-#ifdef HAVE_DOOR
-    learning_set_door2(( sLearning * ) user_data );
-#endif
-}
-
-#ifdef HAVE_DOOR
-void learning_set_door2( sLearning *slearn )
-{
-    slearn->door = &door2;
-    slearn->next = NULL;
-    slearn->phase = LEARNING_OPEN;
-    slearn->opening_ms = &eeprom.door2_opening_ms;
-    slearn->closing_ms = &eeprom.door2_closing_ms;
-}
-#endif
-
-/*
- * Handle a C_SET/C_REQ request on a CHILD_ID:
+ * Handle C_SET/C_REQ requests:
  * see README.
- * 
- * C_SET on CHILD_MAIN:
- * - '1': raz the eeprom
- * - '2': run the learning program
- * 
- * C_SET on a CHILD_ACTOR:
- * - '1': open/close the door (push the button)
- * 
- * C_REQ on a CHILD_ACTOR:
- * - '1': send a custom message
  */
 void receive(const MyMessage &message)
 {
     char payload[2*MAX_PAYLOAD+1];
     uint8_t cmd = message.getCommand();
-    uint8_t req;
-
+    uint8_t req, uint;
+    unsigned long ulong;
     memset( payload, '\0', sizeof( payload ));
     message.getString( payload );
-#ifdef HAVE_DEBUG
-    Serial.print( F( "[receive] payload='" )); Serial.print( payload ); Serial.println( "'" ); 
+#ifdef SKETCH_DEBUG
+    Serial.print( F( "[receive] sensor=" )); Serial.print( message.sensor );
+    Serial.print( F( ", cmd=" )); Serial.print( cmd );
+    Serial.print( F( ", message=" )); Serial.print( message.type );
+    Serial.print( F( ", payload='" )); Serial.print( payload ); Serial.println( "'" ); 
 #endif
 
-    if( message.sensor == CHILD_MAIN ){
-        switch( cmd ){
-            case C_SET:
-                req = strlen( payload ) > 0 ? atoi( payload ) : 0;
-                switch( req ){
-                    case 1:
-                        eeprom_raz();
-                        break;
-                    case 2:
-                        runLearningProgram();
-                        break;
-                    case 3:
-                        st_unchanged_timeout = strlen( payload ) > 2 ? atol( payload+2 ) : 0;
-                        unchanged_timer.set( st_unchanged_timeout );
-                        break;
-                    case 4:
-                        st_position_min = strlen( payload ) > 2 ? atoi( payload+2 ) : 0;
-#ifdef HAVE_DOOR
-                        door1.setMinPositionChange( st_position_min );
-                        door2.setMinPositionChange( st_position_min );
-#endif
-                        break;
-                }
-                break;
-            case C_REQ:
-                req = strlen( payload ) > 0 ? atoi( payload ) : 0;
-                switch( req ){
-                    case 1:
-                        onUnchangedCb( NULL );
-                        break;
-                }
-                break;
-        }
+    switch( message.sensor ){
+        case CHILD_MAIN:
+            switch( cmd ){
+                case C_REQ:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+                            switch( req ){
+                                case 1:
+                                    eeprom.reset();
+                                    globalSendStatus();
+                                    break;
+                                case 2:
+                                    globalSendStatus();
+                                    break;
+                                case 3:
+                                    learning_runProgram( &hub, eeprom.d.learning_phase );
+                                    break;
+                            }
+                    }
+            }
+            break;
 
-#ifdef HAVE_DOOR
-    } else if( message.sensor == CHILD_ID_DOOR1+DOOR_MAIN || message.sensor == CHILD_ID_DOOR2+DOOR_MAIN ){
-        switch( cmd ){
-            case C_SET:
-                req = strlen( payload ) > 0 ? atoi( payload ) : 0;
-                switch( req ){
-                    case 1:
-                        if( message.sensor == CHILD_ID_DOOR1+DOOR_MAIN ){
-                            door1.pushButton();
-                        } else {
-                            door2.pushButton();
-                        }
-                        break;
-                }
-                break;
-        }
-#endif
+        case CHILD_MAIN+1:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            ulong = strlen( payload ) ? atol( payload ) : 0;
+                            if( ulong > 0 ){
+                                eeprom.d.unchanged_timeout_ms = ulong;
+                                eeprom.write();
+                                st_config_timer.setDelay( ulong );
+                                door1.setUnchangedDelay( ulong );
+                                door2.setUnchangedDelay( ulong );
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_MAIN+2:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            ulong = strlen( payload ) ? atol( payload ) : 0;
+                            if( ulong > 0 ){
+                                eeprom.d.react_time_ms = ulong;
+                                eeprom.write();
+                                st_main_timer.setDelay( ulong );
+                                st_main_timer.restart();
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_MAIN+3:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            ulong = strlen( payload ) ? atol( payload ) : 0;
+                            if( ulong > 0 ){
+                                eeprom.d.learning_oc_wait_ms = ulong;
+                                eeprom.write();
+                                st_learning_oc_timer.setDelay( ulong );
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_MAIN+4:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            ulong = strlen( payload ) ? atol( payload ) : 0;
+                            if( ulong > 0 ){
+                                eeprom.d.learning_bd_wait_ms = ulong;
+                                eeprom.write();
+                                st_learning_bd_timer.setDelay( ulong );
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_MAIN+5:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            ulong = strlen( payload ) ? atol( payload ) : 0;
+                            if( ulong > 0 ){
+                                eeprom.d.move_debounce_ms = ulong;
+                                eeprom.write();
+                                door1.setMoveDebounceDelay( ulong );
+                                door2.setMoveDebounceDelay( ulong );
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_MAIN+6:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            ulong = strlen( payload ) > 2 ? atol( payload+2 ) : 0;
+                            if( ulong > 0 ){
+                                eeprom.d.btn_push_ms = ulong;
+                                eeprom.write();
+                                door1.setBtnPushDelay( ulong );
+                                door2.setBtnPushDelay( ulong );
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_MAIN+7:
+            switch( cmd ){
+                case C_SET:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            uint = strlen( payload ) ? atoi( payload ) : 0;
+                            if( uint > 0 ){
+                                eeprom.d.min_published_pct = uint;
+                                eeprom.write();
+                                door1.setMinPublished( uint );
+                                door2.setMinPublished( uint );
+                                globalSendStatus();
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_ID_DOOR1+DOOR_MAIN:
+            switch( cmd ){
+                case C_REQ:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+                            switch( req ){
+                                case 1:
+                                    door1.pushButton();
+                                    break;
+                            }
+                    }
+            }
+            break;
+
+        case CHILD_ID_DOOR2+DOOR_MAIN:
+            switch( cmd ){
+                case C_REQ:
+                    switch( message.type ){
+                        case V_CUSTOM:
+                            req = strlen( payload ) > 0 ? atoi( payload ) : 0;
+                            switch( req ){
+                                case 1:
+                                    door2.pushButton();
+                                    break;
+                            }
+                    }
+            }
+            break;
     }
 }
 
-void runLearningProgram( void )
-{
-#ifdef HAVE_DOOR
-    if( door1.getEnabled()){
-        slearning.door = &door1;
-        slearning.next = door2.getEnabled() ? &door2 : NULL;
-        slearning.phase = LEARNING_OPEN;
-        slearning.opening_ms = &eeprom.door1_opening_ms;
-        slearning.closing_ms = &eeprom.door1_closing_ms;
-
-    } else if( door2.getEnabled()){
-        learning_set_door2( &slearning );
-    }
-#endif
-}
-
-/**
- * eeprom_compute_average:
- * @sdata: the sEeprom data structure to be dumped.
- *
- * Dump the sEeprom struct content.
+/*
+ * A callback to periodically re-send the global configuration
+ * As the same globalSendStatus() function may be triggered by a received command,
+ *  we restart here the config timer.
  */
-unsigned long eeprom_compute_average( sEeprom &sdata )
+void onUnchangedConfigCb( void *empty )
 {
-    uint8_t count = 0;
-    unsigned long average = 0;
-    if( sdata.door1_opening_ms > 0 ){
-        average += sdata.door1_opening_ms;
-        count += 1;
-    }
-    if( sdata.door1_closing_ms > 0 ){
-        average += sdata.door1_closing_ms;
-        count += 1;
-    }
-    if( sdata.door2_opening_ms > 0 ){
-        average += sdata.door2_opening_ms;
-        count += 1;
-    }
-    if( sdata.door2_closing_ms > 0 ){
-        average += sdata.door2_closing_ms;
-        count += 1;
-    }
-    if( count > 0 ){
-        average /= count;
-    }
-#ifdef EEPROM_DEBUG
-    Serial.print( F( "[eeprom_compute_average] average=" )); Serial.println( average );
-#endif
-    return( average );
+    globalSendStatus();
 }
 
-/**
- * eeprom_dump:
- * @sdata: the sEeprom data structure to be dumped.
- *
- * Dump the sEeprom struct content.
- */
-void eeprom_dump( sEeprom &sdata )
+void globalSendStatus( void )
 {
-#ifdef EEPROM_DEBUG
-    Serial.print( F( "[eeprom_dump] door n° 1 opening duration=" )); Serial.println( sdata.door1_opening_ms );
-    Serial.print( F( "[eeprom_dump] door n° 1 closing duration=" )); Serial.println( sdata.door1_closing_ms );
-    Serial.print( F( "[eeprom_dump] door n° 2 opening duration=" )); Serial.println( sdata.door2_opening_ms );
-    Serial.print( F( "[eeprom_dump] door n° 2 closing duration=" )); Serial.println( sdata.door2_closing_ms );
-#endif
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN ).setType( V_VAR1 ).set( hub.average_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+1 ).setType( V_VAR1 ).set( eeprom.d.unchanged_timeout_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+2 ).setType( V_VAR1 ).set( eeprom.d.react_time_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+3 ).setType( V_VAR1 ).set( eeprom.d.learning_oc_wait_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+4 ).setType( V_VAR1 ).set( eeprom.d.learning_bd_wait_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+5 ).setType( V_VAR1 ).set( eeprom.d.move_debounce_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+6 ).setType( V_VAR1 ).set( eeprom.d.btn_push_ms ));
+    msg.clear();
+    send( msg.setSensor( CHILD_MAIN+7 ).setType( V_VAR1 ).set( eeprom.d.min_published_pct ));
+
+    st_config_timer.restart();
 }
 
-/**
- * eeprom_read:
- * @sdata: the sEeprom data structure to be filled.
- *
- * Read the data from the EEPROM.
+/* Dumping the whole configuration from a received command.
+ *  Also sent at startup time before having read any actual status.
  */
-void eeprom_read( sEeprom &sdata )
+void dumpConfiguration( void )
 {
-#ifdef EEPROM_DEBUG
-    Serial.println( F( "[eeprom_read]" ));
-#endif
-    memset( &sdata, '\0', sizeof( sdata ));
-    uint16_t i;
-    for( i=0 ; i<sizeof( sdata ); ++i ){
-        (( uint8_t * ) &sdata )[i] = loadState(( uint8_t ) i );
-    }
-    eeprom_dump( sdata );
-}
-
-/**
- * eeprom_write:
- * @sdata: the sEeprom data structure to be written.
- *
- * Write the data to the EEPROM.
- */
-void eeprom_write( sEeprom &sdata )
-{
-#ifdef EEPROM_DEBUG
-    Serial.println( F( "[eeprom_write]" ));
-#endif
-    uint16_t i;
-    for( i=0 ; i<sizeof( sdata ) ; ++i ){
-        saveState( i, (( uint8_t * ) &sdata )[i] );
-    }
-    eeprom_dump( sdata );
-}
-
-/**
- * eeprom_raz:
- *
- * RAZ the user data of the EEPROM.
- */
-void eeprom_raz( void )
-{
-#ifdef EEPROM_DEBUG
-    Serial.print( F( "[eeprom_raz] begin=" )); Serial.println( millis());
-#endif
-    uint16_t i;
-    for( i=0 ; i<256 ; ++i ){
-        saveState(( uint8_t ) i, 0 );
-    }
-#ifdef EEPROM_DEBUG
-    Serial.print( F( "[eeprom_raz] end=" )); Serial.println( millis());
-#endif
+    globalSendStatus();
+    door1.sendMove();
+    door1.sendStatus();
+    door2.sendMove();
+    door2.sendStatus();
 }
 
