@@ -1,2 +1,10 @@
 build/mysGarageDoors.bak
 build/mysGarageDoors-cache.lib
+
+.vscode/
+build/mysGarageDoors-rescue.lib
+build/mysGarageDoors.sch-bak
+build/pcb_v3.odg
+build/rescue-backup/
+build/sym-lib-table
+

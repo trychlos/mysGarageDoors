@@ -1,0 +1,538 @@
+[presentation]
+[presentation_my_sensors]
+[presentation_door] child_id=20
+[presentation_door] child_id=40
+[setup]
+[eeprom_read]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16065ms
+[eeprom_dump]     door1_closing=17319ms
+[eeprom_dump]     door2_opening=16819ms
+[eeprom_dump]     door2_closing=18073ms
+[eeprom_dump]    learning_phase=LEARNING_NONE
+[eeprom_dump]     learning_door=0
+[eeprom_compute_average] average=17069
+[pwiTimer::dump]: st_count=10/15
+[pwiTimer::objDump] idx=0, label=MainTimer, delay_ms=250, once=False, cb=6513, user_data=0, debug=False
+[pwiTimer::objDump] idx=1, label=ConfigTimer, delay_ms=3600000, once=False, cb=7794, user_data=0, debug=True
+[pwiTimer::objDump] idx=2, label=LearningOpenCloseTimer, delay_ms=5000, once=True, cb=7168, user_data=0, debug=True
+[pwiTimer::objDump] idx=3, label=LearningBetweenDoorsTimer, delay_ms=5000, once=True, cb=7172, user_data=0, debug=True
+[pwiTimer::objDump] idx=4, label=MoveDebounceTimer, delay_ms=500, once=True, cb=1275, user_data=1659, debug=False
+[pwiTimer::objDump] idx=5, label=ButtonPushTimer, delay_ms=500, once=True, cb=3203, user_data=1659, debug=False
+[pwiTimer::objDump] idx=6, label=UnchangedTimer, delay_ms=3600000, once=False, cb=1273, user_data=1659, debug=True
+[pwiTimer::objDump] idx=7, label=MoveDebounceTimer, delay_ms=500, once=True, cb=1275, user_data=1594, debug=False
+[pwiTimer::objDump] idx=8, label=ButtonPushTimer, delay_ms=500, once=True, cb=3203, user_data=1594, debug=False
+[pwiTimer::objDump] idx=9, label=UnchangedTimer, delay_ms=3600000, once=False, cb=1273, user_data=1594, debug=True
+[doorSendStatus] child_id=20, enabled=False, closed=False, opening_ms=16065, closing_ms=17319
+[doorSendStatus] child_id=40, enabled=False, closed=False, opening_ms=16819, closing_ms=18073
+[Door::readEnabled] child_id=20, enabled=True
+[Door::readClosed] child_id=20, closed=True
+[doorSendStatus] child_id=20, enabled=True, closed=True, opening_ms=16065, closing_ms=17319
+[Door::readEnabled] child_id=40, enabled=True
+[Door::readClosed] child_id=40, closed=True
+[doorSendStatus] child_id=40, enabled=True, closed=True, opening_ms=16819, closing_ms=18073
+[receive] sensor=0, cmd=1, message=48, payload='2_run_learning_program'
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=0ms
+[eeprom_dump]     door1_closing=0ms
+[eeprom_dump]     door2_opening=0ms
+[eeprom_dump]     door2_closing=0ms
+[eeprom_dump]    learning_phase=LEARNING_OPENHAVETO
+[eeprom_dump]     learning_door=20
+[learning_dump] phase=LEARNING_OPENHAVETO, door=20, start_ms=0, now=15699
+[Door::pushButton] child_id=20: level=High
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=20, start_ms=15700, now=15951
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=20, start_ms=15700, now=16202
+[Door::pushButton] child_id=20: level=Low
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=20, start_ms=15700, now=16453
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=20, start_ms=15700, now=16704
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=16954
+[Door::readClosed] child_id=20, closed=False
+[doorSendStatus] child_id=20, enabled=True, closed=False, opening_ms=0, closing_ms=0
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=17205
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=17456
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=17707
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=17958
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=18209
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=18460
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=18711
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=18962
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=19213
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=19464
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=19715
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=19966
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=20217
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=20468
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=20719
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=20970
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=21221
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=21472
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=21723
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=21974
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=22225
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=22476
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=22727
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=22978
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=23229
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=23480
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=23731
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=23982
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=24233
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=24484
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=24735
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=24986
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=25237
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=25488
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=25739
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=25990
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=26241
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=26492
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=26743
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=26994
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=27245
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=27496
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=27747
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=27998
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=28249
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=28500
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=28751
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=29002
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=29253
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=29504
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=29755
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=30006
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=30257
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=30508
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=30759
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=31010
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=31261
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=31512
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=31763
+[learning_dump] phase=LEARNING_OPENING, door=20, start_ms=15700, now=32014
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16315ms
+[eeprom_dump]     door1_closing=0ms
+[eeprom_dump]     door2_opening=0ms
+[eeprom_dump]     door2_closing=0ms
+[eeprom_dump]    learning_phase=LEARNING_OPENING
+[eeprom_dump]     learning_door=20
+[doorSendStatus] child_id=20, enabled=True, closed=False, opening_ms=16315, closing_ms=0
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=32266
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=32517
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=32769
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=33020
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=33271
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=33522
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=33773
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=34024
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=34275
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=34526
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=34777
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=35028
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=35279
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=35530
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=35781
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=36032
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=36283
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=36534
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=36785
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=20, start_ms=15700, now=37036
+[pwiTimer::objLoop] label=LearningOpenCloseTimer, delay_ms=5000, start_ms=32081, duration=5001
+[learning_dump] phase=LEARNING_CLOSEHAVETO, door=20, start_ms=15700, now=37286
+[Door::pushButton] child_id=20: level=High
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=20, start_ms=37287, now=37538
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=20, start_ms=37287, now=37789
+[Door::pushButton] child_id=20: level=Low
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=20, start_ms=37287, now=38040
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=20, start_ms=37287, now=38291
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=38541
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=38792
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=39043
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=39294
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=39545
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=39796
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=40047
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=40298
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=40549
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=40800
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=41051
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=41302
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=41553
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=41804
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=42055
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=42306
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=42557
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=42808
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=43059
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=43310
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=43561
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=43812
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=44063
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=44314
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=44565
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=44816
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=45067
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=45318
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=45569
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=45820
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=46071
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=46322
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=46573
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=46824
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=47075
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=47326
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=47577
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=47828
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=48079
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=48330
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=48581
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=48832
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=49083
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=49334
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=49585
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=49836
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=50087
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=50338
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=50589
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=50840
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=51091
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=51342
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=51593
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=51844
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=52096
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=52347
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=52598
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=52849
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=53100
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=53351
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=53602
+[Door::readClosed] child_id=20, closed=True
+[doorSendStatus] child_id=20, enabled=True, closed=True, opening_ms=16315, closing_ms=0
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=53853
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=54104
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=54355
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=54606
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=54857
+[learning_dump] phase=LEARNING_CLOSING, door=20, start_ms=37287, now=55108
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16315ms
+[eeprom_dump]     door1_closing=17822ms
+[eeprom_dump]     door2_opening=0ms
+[eeprom_dump]     door2_closing=0ms
+[eeprom_dump]    learning_phase=LEARNING_CLOSING
+[eeprom_dump]     learning_door=20
+[doorSendStatus] child_id=20, enabled=True, closed=True, opening_ms=16315, closing_ms=17822
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=55360
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=55611
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=55862
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=56113
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=56364
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=56615
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=56866
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=57117
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=57368
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=57619
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=57870
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=58121
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=58372
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=58624
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=58874
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=59125
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=59376
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=59627
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=59878
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=20, start_ms=37287, now=60129
+[pwiTimer::objLoop] label=LearningBetweenDoorsTimer, delay_ms=5000, start_ms=55174, duration=5001
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16315ms
+[eeprom_dump]     door1_closing=17822ms
+[eeprom_dump]     door2_opening=0ms
+[eeprom_dump]     door2_closing=0ms
+[eeprom_dump]    learning_phase=LEARNING_OPENHAVETO
+[eeprom_dump]     learning_door=40
+[learning_dump] phase=LEARNING_OPENHAVETO, door=40, start_ms=0, now=60379
+[Door::pushButton] child_id=40: level=High
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=40, start_ms=60380, now=60631
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=40, start_ms=60380, now=60882
+[Door::pushButton] child_id=40: level=Low
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=40, start_ms=60380, now=61133
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=40, start_ms=60380, now=61384
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=40, start_ms=60380, now=61635
+[Door::readClosed] child_id=40, closed=False
+[doorSendStatus] child_id=40, enabled=True, closed=False, opening_ms=0, closing_ms=0
+[learning_dump] phase=LEARNING_OPENWAITFORMOVE, door=40, start_ms=60380, now=61886
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=62136
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=62387
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=62638
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=62889
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=63140
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=63391
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=63642
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=63893
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=64144
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=64395
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=64646
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=64897
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=65148
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=65399
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=65650
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=65901
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=66152
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=66403
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=66654
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=66905
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=67156
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=67407
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=67658
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=67909
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=68160
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=68411
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=68662
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=68913
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=69164
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=69415
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=69666
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=69917
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=70168
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=70419
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=70670
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=70921
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=71172
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=71424
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=71675
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=71926
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=72177
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=72428
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=72679
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=72930
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=73181
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=73432
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=73683
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=73934
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=74185
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=74436
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=74687
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=74938
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=75189
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=75440
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=75691
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=75942
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=76193
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=76444
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=76695
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=76946
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=77197
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=77448
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=77699
+[learning_dump] phase=LEARNING_OPENING, door=40, start_ms=60380, now=77950
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16315ms
+[eeprom_dump]     door1_closing=17822ms
+[eeprom_dump]     door2_opening=17572ms
+[eeprom_dump]     door2_closing=0ms
+[eeprom_dump]    learning_phase=LEARNING_OPENING
+[eeprom_dump]     learning_door=40
+[doorSendStatus] child_id=40, enabled=True, closed=False, opening_ms=17572, closing_ms=0
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=78202
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=78453
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=78704
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=78955
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=79206
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=79457
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=79708
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=79959
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=80210
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=80461
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=80712
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=80963
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=81214
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=81465
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=81716
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=81967
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=82219
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=82469
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=82720
+[learning_dump] phase=LEARNING_OPENWAITFORTIMEOUT, door=40, start_ms=60380, now=82971
+[pwiTimer::objLoop] label=LearningOpenCloseTimer, delay_ms=5000, start_ms=78016, duration=5001
+[learning_dump] phase=LEARNING_CLOSEHAVETO, door=40, start_ms=60380, now=83221
+[Door::pushButton] child_id=40: level=High
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=40, start_ms=83222, now=83473
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=40, start_ms=83222, now=83724
+[Door::pushButton] child_id=40: level=Low
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=40, start_ms=83222, now=83975
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=40, start_ms=83222, now=84226
+[learning_dump] phase=LEARNING_CLOSEWAITFORMOVE, door=40, start_ms=83222, now=84477
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=84727
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=84978
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=85229
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=85480
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=85731
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=85982
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=86233
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=86484
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=86735
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=86986
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=87237
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=87488
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=87739
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=87990
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=88241
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=88492
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=88743
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=88994
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=89245
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=89496
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=89747
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=89998
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=90249
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=90500
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=90752
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=91003
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=91254
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=91505
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=91756
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=92007
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=92258
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=92509
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=92760
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=93011
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=93262
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=93513
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=93764
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=94015
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=94266
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=94517
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=94768
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=95019
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=95270
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=95521
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=95772
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=96023
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=96274
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=96525
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=96776
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=97027
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=97278
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=97529
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=97780
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=98031
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=98282
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=98533
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=98784
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=99035
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=99286
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=99537
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=99788
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=100039
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=100290
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=100541
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=100792
+[Door::readClosed] child_id=40, closed=True
+[doorSendStatus] child_id=40, enabled=True, closed=True, opening_ms=17572, closing_ms=0
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=101043
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=101294
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=101545
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=101796
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=102047
+[learning_dump] phase=LEARNING_CLOSING, door=40, start_ms=83222, now=102298
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16315ms
+[eeprom_dump]     door1_closing=17822ms
+[eeprom_dump]     door2_opening=17572ms
+[eeprom_dump]     door2_closing=19077ms
+[eeprom_dump]    learning_phase=LEARNING_CLOSING
+[eeprom_dump]     learning_door=40
+[doorSendStatus] child_id=40, enabled=True, closed=True, opening_ms=17572, closing_ms=19077
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=102550
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=102801
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=103052
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=103303
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=103554
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=103805
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=104056
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=104307
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=104558
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=104809
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=105060
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=105311
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=105562
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=105814
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=106064
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=106315
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=106566
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=106817
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=107068
+[learning_dump] phase=LEARNING_CLOSEWAITFORTIMEOUT, door=40, start_ms=83222, now=107319
+[pwiTimer::objLoop] label=LearningBetweenDoorsTimer, delay_ms=5000, start_ms=102363, duration=5001
+[eeprom_write]
+[eeprom_dump]              mark='PWI'
+[eeprom_dump] unchanged_timeout=3600000ms
+[eeprom_dump]     min_published=10%
+[eeprom_dump]        react_time=250ms
+[eeprom_dump]  learning_oc_wait=5000ms
+[eeprom_dump]  learning_bd_wait=5000ms
+[eeprom_dump]     move_debounce=500ms
+[eeprom_dump]          btn_push=500ms
+[eeprom_dump]     door1_opening=16315ms
+[eeprom_dump]     door1_closing=17822ms
+[eeprom_dump]     door2_opening=17572ms
+[eeprom_dump]     door2_closing=19077ms
+[eeprom_dump]    learning_phase=LEARNING_NONE
+[eeprom_dump]     learning_door=0
+[eeprom_compute_average] average=17696
+
